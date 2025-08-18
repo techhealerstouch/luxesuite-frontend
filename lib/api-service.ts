@@ -11,6 +11,26 @@ export interface User {
   }
 }
 
+export interface Permission {
+  name: string;
+  label: string;
+  category: string;
+}
+
+export interface PermissionApi {
+  id: number;
+  name: string;
+  guard_name: string;
+  created_at: string;
+  updated_at: string;
+  pivot: any;
+}
+
+interface PermissionApiResponse {
+  message: string;
+  data: PermissionApi[];
+}
+
 export interface Subscription {
   id: number
   account_id: number
@@ -124,18 +144,50 @@ class ApiService {
     return apiClient.delete(`/api/subscriptions/${id}`)
   }
 
-  //USERS
-  async getAllUsers(): Promise<{ message: string; data: User[] }> {
+// USERS
+async getAllUsers(): Promise<{ message: string; data: User[] }> {
   return apiClient.get("/api/users");
 }
 
-async createSubUser(data: { name: string; email: string; password: string }): Promise<User> {
-  return apiClient.post("/api/users", data);
+async createUserWithPermissions(data: {
+  name: string;
+  email: string;
+  password: string;
+  permissions: string[];
+}): Promise<User> {
+  const response = await apiClient.post("/api/users", data);
+  return response.data.data; // created user is inside response.data.data
 }
 
-  async getUserById(id: string) {
-    return apiClient.get(`/api/users/${id}`);
+async getUserById(id: string): Promise<User> {
+  const response = await apiClient.get(`/api/users/${id}`);
+  return response.data; // <-- may be undefined
+}
+
+
+async getUserPermissions(id: string): Promise<PermissionApi[]> {
+  const response = await apiClient.get(`/api/users/${id}/permissions`);
+  return response.data || []; // <- this is the actual array
+}
+
+
+async updateUserWithPermissions(
+  id: string,
+  data: {
+    name?: string;
+    email?: string;
+    password?: string;
+    permissions: string[];
   }
+): Promise<User> {
+  const response = await apiClient.put(`/api/users/${id}`, data);
+  return response.data.data; // updated user is inside response.data.data
+}
+
+// Role and Permissions
+async getAllPermissions(): Promise<Permission[]> {
+  return apiClient.get("/api/permissions");
+}
 
   // Subscription plans
   async upgradeSubscription(subscriptionId: string, planId: string, duration: number): Promise<Subscription> {
@@ -157,14 +209,14 @@ async createSubUser(data: { name: string; email: string; password: string }): Pr
     return apiClient.get(`/api/plan/custom-limit`)
   }
 
-async createCustomSubscription(data: {
-  plan_id: number;
-  service: string;
-  duration: number;
-  user_limit_id: number;
-}): Promise<any> {
-  return apiClient.post(`/api/subscriptions/custom`, data);
-}
+  async createCustomSubscription(data: {
+    plan_id: number;
+    service: string;
+    duration: number;
+    user_limit_id: number;
+  }): Promise<any> {
+    return apiClient.post(`/api/subscriptions/custom`, data);
+  }
 
   async changePlan(planId: string): Promise<void> {
     return apiClient.post("/api/subscription-plans/change", { planId })

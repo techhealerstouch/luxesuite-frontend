@@ -13,7 +13,17 @@ export default function ViewUserPage() {
 
   useEffect(() => {
     if (id) {
-      apiService.getUserById(id as string).then((res) => setUser(res.data));
+      const fetchUser = async () => {
+        try {
+          const user = await apiService.getUserById(id as string);
+          setUser(user)
+        } catch (error: any) {
+          console.error("Fetch user error:", error);
+        } finally {
+        }
+      };
+
+      fetchUser();
     }
   }, [id]);
 

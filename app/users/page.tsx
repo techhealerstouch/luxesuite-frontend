@@ -17,7 +17,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
-import { CreateUserDialog } from "@/components/Users/CreateUserDialog";
+
 import {
   Card,
   CardContent,
@@ -106,7 +106,12 @@ export default function UsersPage() {
                   <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
-              <CreateUserDialog onUserCreated={fetchUsers} />
+              <Button
+                onClick={() => router.push(`/users/create`)}
+                className="mt-2 sm:mt-0"
+              >
+                Create User
+              </Button>
             </div>
 
             {/* Users table */}
@@ -159,7 +164,13 @@ export default function UsersPage() {
                           >
                             <Eye />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              router.push(`/users/edit/${user.id}`)
+                            }
+                          >
                             <Edit />
                           </Button>
                           <Button size="sm" variant="destructive">
