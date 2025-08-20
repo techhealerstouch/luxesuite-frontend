@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,8 +40,8 @@ export function UserProductsCard() {
           />
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto w-full">
+          <Table className="min-w-full table-auto">
             <TableHeader>
               <TableRow>
                 <TableHead>Model #</TableHead>
@@ -53,27 +54,23 @@ export function UserProductsCard() {
             </TableHeader>
             <TableBody>
               {filteredProducts.map((product, idx) => (
-                <TableRow key={idx}>
+                <motion.tr
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1, duration: 0.3, ease: "easeOut" }}
+                >
                   <TableCell>{product.model}</TableCell>
                   <TableCell>{product.serial}</TableCell>
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{product.price}</TableCell>
                   <TableCell>{product.status}</TableCell>
-                 <TableCell className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Eye />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit />
-                      </Button>
-                      <Button size="sm" variant="destructive">
-                        <Trash2 />
-                      </Button>
-                    </TableCell>
-                </TableRow>
+                  <TableCell className="flex gap-2 justify-end">
+                    <Button size="sm" variant="outline"><Eye /></Button>
+                    <Button size="sm" variant="outline"><Edit /></Button>
+                    <Button size="sm" variant="destructive"><Trash2 /></Button>
+                  </TableCell>
+                </motion.tr>
               ))}
             </TableBody>
           </Table>

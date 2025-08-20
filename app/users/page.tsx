@@ -2,7 +2,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/protected-route";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Globe, Eye, Edit, Trash2, RefreshCw } from "lucide-react";
 import { apiService } from "@/lib/api-service";
@@ -26,6 +25,36 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
+import { motion } from "framer-motion";
+
+// 🔹 Skeleton shimmer animation
+const SkeletonRow = () => (
+  <TableRow>
+    <TableCell>
+      <div className="h-4 w-32 rounded bg-gray-200 animate-pulse" />
+    </TableCell>
+    <TableCell>
+      <div className="h-4 w-48 rounded bg-gray-200 animate-pulse" />
+    </TableCell>
+    <TableCell>
+      <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
+    </TableCell>
+    <TableCell>
+      <div className="h-4 w-28 rounded bg-gray-200 animate-pulse" />
+    </TableCell>
+    <TableCell>
+      <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
+    </TableCell>
+    <TableCell>
+      <div className="flex gap-2">
+        <div className="h-8 w-8 rounded bg-gray-200 animate-pulse flex-shrink-0" />
+        <div className="h-8 w-8 rounded bg-gray-200 animate-pulse flex-shrink-0" />
+        <div className="h-8 w-8 rounded bg-gray-200 animate-pulse flex-shrink-0" />
+      </div>
+    </TableCell>
+  </TableRow>
+);
+
 export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
@@ -34,7 +63,7 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const pageSize = 10; // rows per page
+  const pageSize = 10;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -115,77 +144,97 @@ export default function UsersPage() {
             </div>
 
             {/* Users table */}
-            {isLoading ? (
-              <p>Loading users...</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table className="mt-4">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Website</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          {user.roles
-                            ?.map((role: string) =>
-                              role === "main_user"
-                                ? "Main User"
-                                : role === "sub_user"
-                                ? "Sub User"
-                                : role === "authenticator"
-                                ? "Authenticator"
-                                : role
-                            )
-                            .join(", ")}
-                        </TableCell>
-                        <TableCell className="flex items-center gap-1">
-                          <Globe /> {user.service || "-"}
-                        </TableCell>
-                        <TableCell>
-                          <UserStatusBadge status={user.status} />
-                        </TableCell>
-                        <TableCell className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              router.push(`/users/view/${user.id}`)
-                            }
-                          >
-                            <Eye />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              router.push(`/users/edit/${user.id}`)
-                            }
-                          >
-                            <Edit />
-                          </Button>
-                          <Button size="sm" variant="destructive">
-                            <Trash2 />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <div className="overflow-x-auto w-full">
+              <Table className="w-full border-collapse">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[18%]">Name</TableHead>
+                    <TableHead className="w-[22%]">Email</TableHead>
+                    <TableHead className="w-[15%]">Role</TableHead>
+                    <TableHead className="w-[15%]">Website</TableHead>
+                    <TableHead className="w-[12%]">Status</TableHead>
+                    <TableHead className="w-[18%] min-w-[140px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <SkeletonRow key={i} />
+                      ))
+                    : paginatedUsers.map((user, i) => (
+                        <motion.tr
+                          key={user.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              delay: i * 0.08,
+                              duration: 0.35,
+                              ease: "easeOut",
+                            },
+                          }}
+                          className="border"
+                        >
+                          <TableCell className="w-[18%]">{user.name}</TableCell>
+                          <TableCell className="w-[22%]">{user.email}</TableCell>
+                          <TableCell className="w-[15%]">
+                            {user.roles
+                              ?.map((role: string) =>
+                                role === "main_user"
+                                  ? "Main User"
+                                  : role === "sub_user"
+                                  ? "Sub User"
+                                  : role === "authenticator"
+                                  ? "Authenticator"
+                                  : role
+                              )
+                              .join(", ")}
+                          </TableCell>
+                          <TableCell className="w-[15%]">
+                            <div className="flex items-center gap-1">
+                              <Globe className="flex-shrink-0 h-4 w-4" /> 
+                              <span className="truncate">{user.service || "-"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="w-[12%]">
+                            <UserStatusBadge status={user.status} />
+                          </TableCell>
+                          <TableCell className="w-[18%] min-w-[140px]">
+                            <div className="flex gap-2 items-center justify-start overflow-hidden">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => router.push(`/users/view/${user.id}`)}
+                                className="h-8 w-8 p-0 flex-shrink-0"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => router.push(`/users/edit/${user.id}`)}
+                                className="h-8 w-8 p-0 flex-shrink-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                className="h-8 w-8 p-0 flex-shrink-0"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                </TableBody>
+              </Table>
+            </div>
 
             {/* Pagination controls */}
-            {totalPages > 1 && (
+            {!isLoading && totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-2">
                 <Button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -197,9 +246,7 @@ export default function UsersPage() {
                   Page {currentPage} of {totalPages}
                 </span>
                 <Button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
                 >
                   Next

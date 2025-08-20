@@ -28,6 +28,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Users", href: "/users", icon: User },
+    { name: "Become Authenticator", href: "/authenticator/apply", icon: User },
     // { name: "Account", href: "/account", icon: User },
   ]
 

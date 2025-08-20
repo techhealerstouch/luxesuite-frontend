@@ -13,11 +13,10 @@ class ApiInterceptor {
 
     // Add authorization header if token exists
     const token = localStorage.getItem("accessToken")
-    const headers = {
-      "Content-Type": "application/json",
-      ...options.headers,
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
+const headers = {
+  ...options.headers,
+  ...(token && { Authorization: `Bearer ${token}` }),
+};
 
     // Always include credentials to send cookies
     const requestOptions: RequestInit = {
@@ -114,21 +113,34 @@ private async refreshToken(): Promise<string> {
     return this.request(endpoint, { ...options, method: "GET" })
   }
 
-  post(endpoint: string, data?: any, options?: RequestInit) {
-    return this.request(endpoint, {
-      ...options,
-      method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
-    })
-  }
+post(endpoint: string, data?: any, options?: RequestInit) {
+  const isFormData = data instanceof FormData;
 
-  put(endpoint: string, data?: any, options?: RequestInit) {
-    return this.request(endpoint, {
-      ...options,
-      method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
-    })
-  }
+  return this.request(endpoint, {
+    ...options,
+    method: "POST",
+    body: isFormData ? data : data ? JSON.stringify(data) : undefined,
+    headers: {
+      ...options?.headers,
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    },
+  });
+}
+
+put(endpoint: string, data?: any, options?: RequestInit) {
+  const isFormData = data instanceof FormData;
+
+  return this.request(endpoint, {
+    ...options,
+    method: "PUT",
+    body: isFormData ? data : data ? JSON.stringify(data) : undefined,
+    headers: {
+      ...options?.headers,
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    },
+  });
+}
+
 
   delete(endpoint: string, options?: RequestInit) {
     return this.request(endpoint, { ...options, method: "DELETE" })
