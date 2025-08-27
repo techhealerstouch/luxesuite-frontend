@@ -81,7 +81,7 @@ const headers = {
 
       return response.json()
     } catch (error) {
-      console.error("API request failed:", error)
+      //console.error("API request failed:", error)
       throw error
     }
   }

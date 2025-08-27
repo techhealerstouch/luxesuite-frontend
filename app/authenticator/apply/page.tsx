@@ -16,7 +16,14 @@ import { Step1UserDetails } from "@/components/Steps/Step1UserDetails";
 import { Step2DocumentUpload } from "@/components/Steps/Step2DocumentUpload";
 import { Step3Experience } from "@/components/Steps/Step3Experience";
 import { Step6Review as Step4Review } from "@/components/Steps/Step6Review"; // renamed to step4
-import { CheckCircle, Upload, User, Award, CheckCheck } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Upload,
+  User,
+  Award,
+  CheckCheck,
+} from "lucide-react";
 import { apiService } from "@/lib/api-service";
 
 const steps = [
@@ -49,7 +56,7 @@ export default function AuthenticatorApplyPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const documentTypes: DocumentType[] = [
     { key: "governmentId", label: "Valid Government-Issued ID" },
     { key: "certification", label: "Proof of Certification / Training" },
@@ -66,17 +73,28 @@ export default function AuthenticatorApplyPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const handleFileUpload = (
-    docKey: string,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file)
-      handleInputChange("uploadedFiles", {
-        ...formData.uploadedFiles,
-        [docKey]: file,
-      });
-  };
+const handleFileUpload = (
+  docKey: string,
+  e?: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (!e) {
+    // Remove file
+    handleInputChange("uploadedFiles", {
+      ...formData.uploadedFiles,
+      [docKey]: undefined,
+    });
+    return;
+  }
+
+  const file = e.target.files?.[0];
+  if (file) {
+    handleInputChange("uploadedFiles", {
+      ...formData.uploadedFiles,
+      [docKey]: file,
+    });
+  }
+};
+
 
   const validateStep = (step: number) => {
     const newErrors: any = {};
@@ -129,43 +147,79 @@ export default function AuthenticatorApplyPage() {
     if (validateStep(4)) {
       try {
         setIsSubmitting(true);
-        await apiService.submitAuthenticatorApplication({
+        const response = await apiService.submitAuthenticatorApplication({
           ...formData,
           useMyDetails,
         });
+
+        // If using Axios, the actual data is in response.data
+        const message =
+          response?.data?.message || "Application submitted successfully!";
+        setSubmitMessage(message);
         setIsSubmitted(true);
       } catch (error: any) {
-        console.error("Error submitting application:", error);
-        setErrors({
-          submit: error.response?.data?.message || "Submission failed",
-        });
+        let message = "Submission failed. Please try again.";
+
+        if (error?.response?.data?.message) {
+          message = error.response.data.message;
+        } else if (error?.message) {
+          message = error.message;
+        }
+
+        setSubmitMessage(message);
+        setErrors({ submit: message });
       } finally {
         setIsSubmitting(false);
       }
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <div className="min-h-screen flex items-center justify-center">
-            <Card className="w-full max-w-md text-center">
-              <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+if (isSubmitted || submitMessage) {
+  const isError = !isSubmitted; // if not submitted successfully, treat as error
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="w-full max-w-md text-center">
+            <CardHeader>
+              <div
+                className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 ${
+                  isError ? "bg-red-100" : "bg-green-100"
+                }`}
+              >
+                {isError ? (
+                  <XCircle className="w-6 h-6 text-red-600" />
+                ) : (
                   <CheckCircle className="w-6 h-6 text-green-600" />
+                )}
+              </div>
+              <CardTitle>
+                {isSubmitted ? "Application Submitted!" : "Submission Status"}
+              </CardTitle>
+              <CardDescription>{submitMessage}</CardDescription>
+
+              {/* Go Back Button if there is an error */}
+              {isError && (
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsSubmitted(false);
+                      setSubmitMessage(null);
+                    }}
+                  >
+                    Go Back & Edit
+                  </Button>
                 </div>
-                <CardTitle>Application Submitted!</CardTitle>
-                <CardDescription>
-                  Thank you for applying. Please wait for admin approval.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </DashboardLayout>
-      </ProtectedRoute>
-    );
-  }
+              )}
+            </CardHeader>
+          </Card>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 
   return (
     <ProtectedRoute>

@@ -120,49 +120,61 @@ class ApiService {
 
   //Authenticator
 async submitAuthenticatorApplication(data: AuthenticatorFormData) {
-    const formData = new FormData();
+  const formData = new FormData();
 
-    // Append normal text fields
-    formData.append("name", data.name);
-    formData.append("email", data.email);
-    formData.append("password", data.password);
-    formData.append("password_confirmation", data.confirmPassword);
-    formData.append("yearsOfExperience", data.yearsOfExperience);
-    formData.append("certificationDetails", data.certificationDetails);
-    formData.append("currentEmployer", data.currentEmployer);
-    formData.append("previousExperience", data.previousExperience);
-    formData.append("professionalReferences", data.professionalReferences);
-    formData.append("workingLocation", data.workingLocation);
-    formData.append("availability", data.availability);
-    formData.append("agreedToTerms", data.agreedToTerms ? "1" : "0");
-    formData.append("useMyDetails", data.useMyDetails ? "1" : "0");
+  // Append normal text fields
+  formData.append("name", data.name ?? "");
+  formData.append("email", data.email ?? "");
+  formData.append("password", data.password ?? "");
+  formData.append("password_confirmation", data.confirmPassword ?? "");
+  formData.append("yearsOfExperience", data.yearsOfExperience ?? "");
+  formData.append("certificationDetails", data.certificationDetails ?? "");
+  formData.append("currentEmployer", data.currentEmployer ?? "");
+  formData.append("previousExperience", data.previousExperience ?? "");
+  formData.append("professionalReferences", data.professionalReferences ?? "");
+  formData.append("workingLocation", data.workingLocation ?? "");
+  formData.append("availability", data.availability ?? "");
+  formData.append("agreedToTerms", data.agreedToTerms ? "1" : "0");
+  formData.append("useMyDetails", data.useMyDetails ? "1" : "0");
 
-    // Append array fields
-    data.specializations.forEach((spec) =>
-      formData.append("specializations[]", spec)
-    );
-    data.preferredBrands.forEach((brand) =>
-      formData.append("preferredBrands[]", brand)
-    );
+  // Append array fields
+  data.specializations?.forEach((spec) =>
+    formData.append("specializations[]", spec)
+  );
+  data.preferredBrands?.forEach((brand) =>
+    formData.append("preferredBrands[]", brand)
+  );
 
-    // Append files
+  // Append files safely
+  if (data.uploadedFiles) {
+    Object.keys(data.uploadedFiles).forEach((key) => {
+      const file = data.uploadedFiles[key];
 
-console.log("FormData contents:");
-for (let [key, value] of formData.entries()) {
-  console.log(`${key}:`, value);
-}
-    for (const key in data.uploadedFiles) {
-      formData.append(key, data.uploadedFiles[key]);
-    }
-
-    // Axios will auto-set Content-Type with boundary
-    const response = await apiClient.post(
-      "/api/user/authenticator/apply",
-      formData
-    );
-
-    return response.data;
+      // Only append if it is a valid File object
+      if (file instanceof File) {
+        console.log(`Appending file for ${key}:`, file.name, file.type, file.size);
+        formData.append(key, file, file.name);
+      } else {
+        console.warn(`Skipped ${key}: not a valid File object`, file);
+      }
+    });
   }
+
+  // Debug all FormData entries before sending
+  console.log("Final FormData contents:");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+  // Axios will automatically set Content-Type to multipart/form-data
+  const response = await apiClient.post(
+    "/api/user/authenticator/apply",
+    formData
+  );
+
+  return response.data;
+}
+
 
   // Account endpoints
   async getAccount(): Promise<User> {

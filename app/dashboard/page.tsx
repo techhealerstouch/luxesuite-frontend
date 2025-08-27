@@ -27,22 +27,30 @@ export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
-  const fetchSubscriptions = async () => {
-    try {
-      const response = await apiService.getSubscriptions();
-      setSubscriptions(response.data);
-    } catch (error) {
-      console.error("Failed to fetch subscriptions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscriptions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+const fetchSubscriptions = async () => {
+  setIsLoading(true);
+  setIsRefreshing(true);
+
+  try {
+    const response = await apiService.getSubscriptions();
+    setSubscriptions(response.data);
+  } catch (error: any) {
+    // If 404 and message matches, just set empty array
+    if (
+      error.response?.status === 404 &&
+      error.response.data?.message === "No subscriptions found for this account."
+    ) {
+      setSubscriptions([]);
+    } else {
+      // For other errors, you can still set empty or handle differently
+      setSubscriptions([]);
     }
-  };
+  } finally {
+    setIsLoading(false);
+    setIsRefreshing(false);
+  }
+};
+
 
   useEffect(() => {
     fetchSubscriptions();
