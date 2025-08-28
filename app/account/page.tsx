@@ -7,10 +7,15 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   apiService,
-  type SubscriptionPlan,
-  type Subscription,
-  type AccountSettings,
 } from "@/lib/api-service";
+import { 
+  Subscription, 
+  SubscriptionsApiResponse, 
+  SubscriptionPlan, 
+  CustomPlanUserLimit, 
+  NewSubscription 
+} from "@/types/api/subscription";
+import { AccountSettings } from "@/types/settings/account-settings";
 import { useToast } from "@/hooks/use-toast";
 
 import { Sidebar } from "@/components/Account/Sidebar";
@@ -27,6 +32,7 @@ export default function AccountPage() {
   const [currentPlans, setCurrentPlans] = useState<Subscription[]>([]);
   const [accountSettings, setAccountSettings] =
     useState<AccountSettings | null>(null);
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -35,6 +41,8 @@ export default function AccountPage() {
     id: null,
     name: "",
     email: "",
+    phone_number: "",
+    timezone: "",
     account: {
       name: "", // maps to businessName maybe
       slug: "",
@@ -47,19 +55,33 @@ export default function AccountPage() {
     confirmPassword: "",
   });
 
+  // Initialize form data from user data
   useEffect(() => {
     if (user) {
-      setFormData({
-        id: user.account?.id || "",
-        name: user.name || "",
-        email: user.email || "",
-        account: {
-          name: user.account?.name || "",
-          slug: user.account?.slug || "",
-        },
-      });
+      // Only update if we haven't loaded user data yet, or if timezone is empty
+      // This prevents overwriting user changes with stale data
+      if (!userDataLoaded) {
+        setFormData({
+          id: user.account?.id || null,
+          name: user.name || "",
+          email: user.email || "",
+          phone_number: user.phone_number || "",
+          timezone: user.timezone || "", // This will be populated by AccountSection if empty
+          account: {
+            name: user.account?.name || "",
+            slug: user.account?.slug || "",
+          },
+        });
+        setUserDataLoaded(true);
+      } else if (user.timezone && !formData.timezone) {
+        // If user has a timezone but formData doesn't, update it
+        setFormData(prev => ({
+          ...prev,
+          timezone: user.timezone || "",
+        }));
+      }
     }
-  }, [user]);
+  }, [user, userDataLoaded, formData.timezone]);
 
   useEffect(() => {
     if (activeSection === "subscription") fetchCurrentPlan();
@@ -72,7 +94,12 @@ export default function AccountPage() {
       const response = await apiService.getSubscriptions();
       setCurrentPlans(response.data);
     } catch (error) {
-      // handle error
+      console.error('Failed to fetch subscriptions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscription information",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -98,6 +125,17 @@ export default function AccountPage() {
 
   async function handleAccountUpdate(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Basic validation
+    if (!formData.name.trim() || !formData.email.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Name and email are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       await apiService.updateAccount(formData);
@@ -106,10 +144,21 @@ export default function AccountPage() {
         description: "Account information updated successfully",
       });
     } catch (error) {
-      console.error(error);
+      console.error('Failed to update account:', error);
+      
+      // Extract error message if available
+      let errorMessage = "Failed to update account information";
+      if (typeof error === "object" && error !== null) {
+        if ("data" in error && typeof (error as any).data === "object" && (error as any).data !== null) {
+          errorMessage = (error as any).data.message ?? errorMessage;
+        } else if ("message" in error && typeof (error as any).message === "string") {
+          errorMessage = (error as any).message;
+        }
+      }
+
       toast({
         title: "Error",
-        description: "Failed to update account information",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -119,10 +168,30 @@ export default function AccountPage() {
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validation
+    if (!passwordData.currentPassword || !passwordData.newPassword) {
+      toast({
+        title: "Validation Error",
+        description: "Both current and new passwords are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "Error",
+        title: "Validation Error",
         description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Validation Error",
+        description: "New password must be at least 6 characters long",
         variant: "destructive",
       });
       return;
@@ -134,14 +203,17 @@ export default function AccountPage() {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      toast({ title: "Success", description: "Password updated successfully" });
+      toast({ 
+        title: "Success", 
+        description: "Password updated successfully" 
+      });
       setPasswordData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } catch (error: unknown) {
-      let message = "Something went wrong";
+      let message = "Failed to update password";
 
       if (typeof error === "object" && error !== null) {
         if (
@@ -177,12 +249,25 @@ export default function AccountPage() {
         ...newSettings,
       });
       setAccountSettings(updatedSettings);
-      toast({ title: "Success", description: "Settings updated successfully" });
+      toast({ 
+        title: "Success", 
+        description: "Settings updated successfully" 
+      });
     } catch (error) {
-      console.error(error);
+      console.error('Failed to update settings:', error);
+      
+      let errorMessage = "Failed to update settings";
+      if (typeof error === "object" && error !== null) {
+        if ("data" in error && typeof (error as any).data === "object" && (error as any).data !== null) {
+          errorMessage = (error as any).data.message ?? errorMessage;
+        } else if ("message" in error && typeof (error as any).message === "string") {
+          errorMessage = (error as any).message;
+        }
+      }
+
       toast({
         title: "Error",
-        description: "Failed to update settings",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -213,7 +298,10 @@ export default function AccountPage() {
 
             <div className="w-full md:w-3/5 px-4 md:px-0">
               {isLoading && (
-                <Loader2 className="h-8 w-8 animate-spin mx-auto my-12" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2 text-muted-foreground">Loading...</span>
+                </div>
               )}
               {!isLoading && activeSection === "account" && (
                 <AccountSection

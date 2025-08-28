@@ -36,7 +36,7 @@ export function PendingSubscriptionDialog({
           )}
         </p>
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
           {paymentUrl && (

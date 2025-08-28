@@ -4,15 +4,8 @@ import type React from "react";
 
 import { createContext, useEffect, useState } from "react";
 import { authService } from "@/lib/auth-service";
+import { User } from "@/types/api/user";
 
-interface User {
-  name: string;
-  email: string;
-  account: {
-    name: string;
-    slug: string;
-  };
-}
 
 interface AuthContextType {
   user: User | null;

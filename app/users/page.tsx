@@ -204,7 +204,7 @@ export default function UsersPage() {
                             <div className="flex gap-2 items-center justify-start overflow-hidden">
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={() => router.push(`/users/view/${user.id}`)}
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
@@ -212,7 +212,7 @@ export default function UsersPage() {
                               </Button>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={() => router.push(`/users/edit/${user.id}`)}
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
@@ -220,7 +220,7 @@ export default function UsersPage() {
                               </Button>
                               <Button 
                                 size="sm" 
-                                variant="destructive"
+                                variant="ghost"
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
                                 <Trash2 className="h-4 w-4" />

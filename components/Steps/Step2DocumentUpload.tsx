@@ -28,7 +28,7 @@ export const Step2DocumentUpload: FC<StepProps> = ({
                 <span className="truncate">{formData.uploadedFiles[doc.key].name}</span>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="ghost"
                   size="sm"
                   className="ml-2 h-6 w-6 p-0 flex-shrink-0"
                   onClick={() => handleFileUpload(doc.key, undefined)} // remove file

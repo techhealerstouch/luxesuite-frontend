@@ -35,7 +35,7 @@ interface SubscriptionDetailsDialogProps {
   subscription: Subscription | null;
   getStatusColor: (
     status: string
-  ) => "default" | "secondary" | "destructive" | "outline";
+  ) => "default" | "secondary" | "destructive" | "ghost";
 }
 
 const invoices = [
@@ -188,14 +188,14 @@ export function SubscriptionDetailsDialog({
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <Button
-                        variant="outline"
+                        variant="default"
                         className="w-full sm:w-auto"
                         onClick={() => setShowUpgrade(true)}
                       >
                         Upgrade Plan
                       </Button>
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         className="w-full sm:w-auto"
                         onClick={() => setShowCancelConfirm(true)}
                         disabled={isCancelling}
@@ -220,7 +220,7 @@ export function SubscriptionDetailsDialog({
                         </span>
                       </div>
                     </div>
-                    <Button variant="outline">Update Payment Method</Button>
+                    <Button variant="ghost">Update Payment Method</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -230,7 +230,7 @@ export function SubscriptionDetailsDialog({
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                     <h2 className="text-lg font-semibold">Billing History</h2>
-                    <Button variant="outline" size="sm">
+                    <Button variant="ghost" size="sm">
                       <Download className="mr-2 size-4" />
                       Download All
                     </Button>
@@ -253,7 +253,7 @@ export function SubscriptionDetailsDialog({
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <Badge variant="outline">{invoice.status}</Badge>
+                          <Badge variant="ghost">{invoice.status}</Badge>
                           <span className="font-medium">{invoice.amount}</span>
                           <Button variant="ghost" size="sm">
                             <Download className="size-4" />
@@ -339,7 +339,7 @@ export function SubscriptionDetailsDialog({
                             variant={
                               plan.name === "Professional"
                                 ? undefined
-                                : "outline"
+                                : "ghost"
                             }
                             onClick={() => handleSubscription(plan, duration)}
                             disabled={isUpgrading}

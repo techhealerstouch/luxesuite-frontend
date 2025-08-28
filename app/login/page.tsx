@@ -145,7 +145,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <h1 className="text-2xl font-bold text-purple-600">Luxe Suite</h1>
+            <h1 className="text-2xl font-bold text-primary-600">Luxe Suite</h1>
           </div>
           <CardTitle>Welcome back</CardTitle>
           <CardDescription>Login using your Luxe Suite account</CardDescription>
@@ -159,7 +159,7 @@ export default function LoginPage() {
               Don’t have an account?{" "}
               <button
                 onClick={redirectToRegister}
-                className="text-purple-600 hover:underline"
+                className="text-primary-600 hover:underline"
               >
                 Sign up
               </button>

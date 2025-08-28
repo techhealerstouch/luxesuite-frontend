@@ -207,7 +207,7 @@ export function NewSubscriptionDialog({
               <div className="flex items-center justify-between border rounded-md p-4 mb-6">
                 <h2 className="text-lg font-semibold">Customize your plan</h2>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   className="w-fit"
                   onClick={() => setShowCustom(true)}
                 >

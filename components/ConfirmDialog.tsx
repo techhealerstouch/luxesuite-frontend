@@ -41,11 +41,11 @@ export default function ConfirmDialog({
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{description}</p>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
               {cancelText}
             </Button>
             <Button
-              variant="destructive"
+              variant="ghost"
               onClick={() => {
                 onConfirm()
                 onOpenChange(false)

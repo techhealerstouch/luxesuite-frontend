@@ -39,7 +39,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-2xl font-bold text-purple-600">
+              <Link href="/dashboard" className="text-2xl font-bold text-primary-600">
                 Luxe Suite
               </Link>
             </div>
@@ -54,7 +54,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     href={item.href}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === item.href
-                        ? "bg-purple-100 text-purple-700"
+                        ? "bg-primary-100 text-primary-700"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
@@ -68,9 +68,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button variant="default" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-purple-100 text-purple-600">
+                    <AvatarFallback className="bg-primary-100 text-primary-600">
                       {user?.fullName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>

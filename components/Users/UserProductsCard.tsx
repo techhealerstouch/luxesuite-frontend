@@ -66,9 +66,9 @@ export function UserProductsCard() {
                   <TableCell>{product.price}</TableCell>
                   <TableCell>{product.status}</TableCell>
                   <TableCell className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline"><Eye /></Button>
-                    <Button size="sm" variant="outline"><Edit /></Button>
-                    <Button size="sm" variant="destructive"><Trash2 /></Button>
+                    <Button size="sm" variant="ghost"><Eye /></Button>
+                    <Button size="sm" variant="ghost"><Edit /></Button>
+                    <Button size="sm" variant="ghost"><Trash2 /></Button>
                   </TableCell>
                 </motion.tr>
               ))}
@@ -78,8 +78,8 @@ export function UserProductsCard() {
 
         {/* Dummy pagination */}
         <div className="flex justify-end mt-4 space-x-2">
-          <Button size="sm" variant="outline">Previous</Button>
-          <Button size="sm" variant="outline">Next</Button>
+          <Button size="sm" variant="ghost">Previous</Button>
+          <Button size="sm" variant="ghost">Next</Button>
         </div>
       </CardContent>
     </Card>

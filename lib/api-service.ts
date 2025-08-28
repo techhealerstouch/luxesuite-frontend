@@ -1,179 +1,98 @@
 import { apiClient } from "./api-interceptor"
+import { User } from "@/types/api/user";
+import { Permission, PermissionApi } from "@/types/api/permission";
+import { 
+  Subscription, 
+  SubscriptionsApiResponse, 
+  SubscriptionPlan, 
+  CustomPlanUserLimit, 
+  NewSubscription 
+} from "@/types/api/subscription";
+import { AccountSettings } from "@/types/settings/account-settings";
 
-// Types for API responses
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  account: {
-    name: string;
-    slug: string;
-  }
-}
+import { AuthenticatorFormData } from "@/types/forms/authenticator";
 
-export interface Permission {
-  name: string;
+interface TimezoneOption {
+  value: string;
   label: string;
-  category: string;
 }
-
-export interface PermissionApi {
-  id: number;
-  name: string;
-  guard_name: string;
-  created_at: string;
-  updated_at: string;
-  pivot: any;
-}
-
-interface PermissionApiResponse {
-  message: string;
-  data: PermissionApi[];
-}
-
-export interface Subscription {
-  id: number
-  account_id: number
-  plan_id: number
-  service: string
-  status: "active" | "pending" | "suspended" | "cancelled"
-  start_date: string
-  end_date: string
-  cancelled_at: string | null
-  created_at: string | null
-  updated_at: string | null
-  plan: {
-    id: number
-    name: "Starter" | "Professional" | "Enterprise" // adjust based on your actual plan names
-    slug: "starter" | "professional" | "enterprise"
-    price: string
-    domain: string
-    sub_user_limit: number
-    product_limit: number
-    created_at: string | null
-    updated_at: string | null
-  }
-}
-
-export interface SubscriptionsApiResponse {
-  message: string
-  data: Subscription[]
-}
-
-export interface SubscriptionPlan {
-  id: string
-  name: string
-  price: number
-  features: string[]
-  isActive: boolean
-    sub_user_limit: number
-  product_limit: number
-}
-
-export interface CustomPlanUserLimit {
-  id: string
-  type: string
-  count: number
-  price: number
-}
-
-export interface NewSubscription {
-  payment_url: string;
-}
-
-export interface AccountSettings {
-  notifications: {
-    email: boolean
-    sms: boolean
-    push: boolean
-  }
-  privacy: {
-    profileVisible: boolean
-    analyticsEnabled: boolean
-  }
-  billing: {
-    autoRenew: boolean
-    invoiceEmail: string
-  }
-}
-
-export interface AuthenticatorFormData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  uploadedFiles: Record<string, File>;
-  yearsOfExperience: string;
-  specializations: string[];
-  certificationDetails: string;
-  currentEmployer: string;
-  previousExperience: string;
-  professionalReferences: string;
-  workingLocation: string;
-  availability: string;
-  preferredBrands: string[];
-  agreedToTerms: boolean;
-  useMyDetails?: boolean;
-}
-
 class ApiService {
 
   //Authenticator
-async submitAuthenticatorApplication(data: AuthenticatorFormData) {
-  const formData = new FormData();
+  async submitAuthenticatorApplication(data: AuthenticatorFormData) {
+    const formData = new FormData();
 
-  // Append normal text fields
-  formData.append("name", data.name ?? "");
-  formData.append("email", data.email ?? "");
-  formData.append("password", data.password ?? "");
-  formData.append("password_confirmation", data.confirmPassword ?? "");
-  formData.append("yearsOfExperience", data.yearsOfExperience ?? "");
-  formData.append("certificationDetails", data.certificationDetails ?? "");
-  formData.append("currentEmployer", data.currentEmployer ?? "");
-  formData.append("previousExperience", data.previousExperience ?? "");
-  formData.append("professionalReferences", data.professionalReferences ?? "");
-  formData.append("workingLocation", data.workingLocation ?? "");
-  formData.append("availability", data.availability ?? "");
-  formData.append("agreedToTerms", data.agreedToTerms ? "1" : "0");
-  formData.append("useMyDetails", data.useMyDetails ? "1" : "0");
+    // Append normal text fields
+    formData.append("name", data.name ?? "");
+    formData.append("email", data.email ?? "");
+    formData.append("password", data.password ?? "");
+    formData.append("password_confirmation", data.confirmPassword ?? "");
+    formData.append("yearsOfExperience", data.yearsOfExperience ?? "");
+    formData.append("certificationDetails", data.certificationDetails ?? "");
+    formData.append("currentEmployer", data.currentEmployer ?? "");
+    formData.append("previousExperience", data.previousExperience ?? "");
+    formData.append("professionalReferences", data.professionalReferences ?? "");
+    formData.append("workingLocation", data.workingLocation ?? "");
+    formData.append("availability", data.availability ?? "");
+    formData.append("agreedToTerms", data.agreedToTerms ? "1" : "0");
+    formData.append("useMyDetails", data.useMyDetails ? "1" : "0");
 
-  // Append array fields
-  data.specializations?.forEach((spec) =>
-    formData.append("specializations[]", spec)
-  );
-  data.preferredBrands?.forEach((brand) =>
-    formData.append("preferredBrands[]", brand)
-  );
+    // Append array fields
+    data.specializations?.forEach((spec) =>
+      formData.append("specializations[]", spec)
+    );
+    data.preferredBrands?.forEach((brand) =>
+      formData.append("preferredBrands[]", brand)
+    );
 
-  // Append files safely
-  if (data.uploadedFiles) {
-    Object.keys(data.uploadedFiles).forEach((key) => {
-      const file = data.uploadedFiles[key];
+    // Append files safely
+    if (data.uploadedFiles) {
+      Object.keys(data.uploadedFiles).forEach((key) => {
+        const file = data.uploadedFiles[key];
 
-      // Only append if it is a valid File object
-      if (file instanceof File) {
-        console.log(`Appending file for ${key}:`, file.name, file.type, file.size);
-        formData.append(key, file, file.name);
-      } else {
-        console.warn(`Skipped ${key}: not a valid File object`, file);
-      }
-    });
+        // Only append if it is a valid File object
+        if (file instanceof File) {
+          console.log(`Appending file for ${key}:`, file.name, file.type, file.size);
+          formData.append(key, file, file.name);
+        } else {
+          console.warn(`Skipped ${key}: not a valid File object`, file);
+        }
+      });
+    }
+
+    // Debug all FormData entries before sending
+    console.log("Final FormData contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // Axios will automatically set Content-Type to multipart/form-data
+    const response = await apiClient.post(
+      "/api/user/authenticator/apply",
+      formData
+    );
+
+    return response.data;
   }
 
-  // Debug all FormData entries before sending
-  console.log("Final FormData contents:");
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
+  async  getAuthenticatedProducts(userId: string, page = 1, search = "") {
+    if (!userId) return { data: [], meta: { current_page: 1, last_page: 1 } };
+
+    try {
+      const query = new URLSearchParams({ page: page.toString() });
+      if (search) query.append("search", search);
+
+      const res = await apiClient.get(`/api/auth-products/${userId}?${query.toString()}`);
+
+      return {
+        data: res.data ?? [],
+        meta: res.meta ?? { current_page: 1, last_page: 1 },
+      };
+    } catch (err: any) {
+      console.error("Error fetching products:", err);
+      return { data: [], meta: { current_page: 1, last_page: 1 } };
+    }
   }
-
-  // Axios will automatically set Content-Type to multipart/form-data
-  const response = await apiClient.post(
-    "/api/user/authenticator/apply",
-    formData
-  );
-
-  return response.data;
-}
 
 
   // Account endpoints
@@ -190,6 +109,13 @@ async submitAuthenticatorApplication(data: AuthenticatorFormData) {
   }): Promise<User> {
     return apiClient.put("/api/user", data);
   }
+
+async getTimezones(): Promise<TimezoneOption[]> {
+  const res = await apiClient.get(`/api/user/timezones`);
+  console.log('FULL RESPONSE', res); // res is already the array
+  return Array.isArray(res) ? res : [];
+}
+
 
   async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
     return apiClient.put("/api/user/change-password", data)
@@ -222,50 +148,50 @@ async submitAuthenticatorApplication(data: AuthenticatorFormData) {
     return apiClient.delete(`/api/subscriptions/${id}`)
   }
 
-// USERS
-async getAllUsers(): Promise<{ message: string; data: User[] }> {
-  return apiClient.get("/api/users");
-}
-
-async createUserWithPermissions(data: {
-  name: string;
-  email: string;
-  password: string;
-  permissions: string[];
-}): Promise<User> {
-  const response = await apiClient.post("/api/users", data);
-  return response.data.data; // created user is inside response.data.data
-}
-
-async getUserById(id: string): Promise<User> {
-  const response = await apiClient.get(`/api/users/${id}`);
-  return response.data; // <-- may be undefined
-}
-
-
-async getUserPermissions(id: string): Promise<PermissionApi[]> {
-  const response = await apiClient.get(`/api/users/${id}/permissions`);
-  return response.data || []; // <- this is the actual array
-}
-
-
-async updateUserWithPermissions(
-  id: string,
-  data: {
-    name?: string;
-    email?: string;
-    password?: string;
-    permissions: string[];
+  // USERS
+  async getAllUsers(): Promise<{ message: string; data: User[] }> {
+    return apiClient.get("/api/users");
   }
-): Promise<User> {
-  const response = await apiClient.put(`/api/users/${id}`, data);
-  return response.data.data; // updated user is inside response.data.data
-}
 
-// Role and Permissions
-async getAllPermissions(): Promise<Permission[]> {
-  return apiClient.get("/api/permissions");
-}
+  async createUserWithPermissions(data: {
+    name: string;
+    email: string;
+    password: string;
+    permissions: string[];
+  }): Promise<User> {
+    const response = await apiClient.post("/api/users", data);
+    return response.data.data; // created user is inside response.data.data
+  }
+
+  async getUserById(id: string): Promise<User> {
+    const response = await apiClient.get(`/api/users/${id}`);
+    return response.data; // <-- may be undefined
+  }
+
+
+  async getUserPermissions(id: string): Promise<PermissionApi[]> {
+    const response = await apiClient.get(`/api/users/${id}/permissions`);
+    return response.data || []; // <- this is the actual array
+  }
+
+
+  async updateUserWithPermissions(
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      permissions: string[];
+    }
+  ): Promise<User> {
+    const response = await apiClient.put(`/api/users/${id}`, data);
+    return response.data.data; // updated user is inside response.data.data
+  }
+
+  // Role and Permissions
+  async getAllPermissions(): Promise<Permission[]> {
+    return apiClient.get("/api/permissions");
+  }
 
   // Subscription plans
   async upgradeSubscription(subscriptionId: string, planId: string, duration: number): Promise<Subscription> {

@@ -202,7 +202,7 @@ if (isSubmitted || submitMessage) {
               {isError && (
                 <div className="mt-4">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => {
                       setIsSubmitted(false);
                       setSubmitMessage(null);
@@ -354,7 +354,7 @@ if (isSubmitted || submitMessage) {
               {/* Navigation Buttons */}
               <div className="flex flex-col sm:flex-row justify-between mt-4 gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={prevStep}
                   disabled={currentStep === 1}
                 >

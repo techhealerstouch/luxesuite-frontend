@@ -15,8 +15,8 @@ export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps)
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <User className="h-6 w-6 text-purple-600" />
+            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+              <User className="h-6 w-6 text-primary-600" />
             </div>
             <div>
               <CardTitle className="text-lg">{user?.name}</CardTitle>

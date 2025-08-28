@@ -66,7 +66,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <h1 className="text-2xl font-bold text-purple-600">Luxe Suite</h1>
+            <h1 className="text-2xl font-bold text-primary-600">Luxe Suite</h1>
           </div>
           <CardTitle>Create your account</CardTitle>
           <CardDescription>Get started with your premium business suite</CardDescription>
@@ -119,7 +119,7 @@ export default function RegisterPage() {
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-600 hover:underline">
+            <Link href="/login" className="text-primary-600 hover:underline">
               Sign in
             </Link>
           </div>
