@@ -82,7 +82,7 @@ const fetchSubscriptions = async () => {
             </div>
             <div className="flex gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >

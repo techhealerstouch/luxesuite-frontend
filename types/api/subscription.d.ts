@@ -3,6 +3,7 @@ export interface Subscription {
   account_id: number;
   plan_id: number;
   service: string;
+  payment_url: string;
   status: "active" | "pending" | "suspended" | "cancelled";
   start_date: string;
   end_date: string;
