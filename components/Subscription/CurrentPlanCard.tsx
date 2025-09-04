@@ -4,11 +4,14 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Package } from "lucide-react";
-import { 
-  Subscription, 
-  SubscriptionPlan, 
+import {
+  Subscription,
+  SubscriptionPlan,
 } from "@/types/api/subscription";
+import { apiService } from "@/lib/api-service";
+import { Invoice } from "@/types/api/invoice";
 
 interface CurrentPlanCardProps {
   subscription: Subscription;
@@ -22,63 +25,116 @@ export default function CurrentPlanCard({
   getStatusColor,
   onUpgrade,
   onCancel,
-}: CurrentPlanCardProps) {
+  billingHistory, // add billingHistory as prop
+}: CurrentPlanCardProps & { billingHistory: Invoice[] }) {
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+
+  const handleCancel = async () => {
+    setIsCancelling(true);
+    try {
+      const res = await apiService.cancelSubscription(subscription.id.toString());
+      console.log("Cancel response:", res);
+      window.location.reload();
+      setShowDialog(false);
+    } catch (err) {
+      console.error("Failed to cancel subscription:", err);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  
+
+  // Filter only SCHEDULED invoices
+  const nextInvoice = billingHistory.find((inv) => inv.status === "SCHEDULED");
 
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Package className="text-primary size-5" />
-              <h2 className="text-lg font-semibold">
-                {subscription.plan.name} | {subscription.plan.domain}
-              </h2>
-              <Badge variant={getStatusColor(subscription.status)}>
-                {subscription.status}
-              </Badge>
+    <>
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Package className="text-primary size-5" />
+                <h2 className="text-lg font-semibold">
+                  {subscription.plan.name} | {subscription.plan.domain}
+                </h2>
+                <Badge variant={getStatusColor(subscription.status)}>
+                  {subscription.status}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                ₱{subscription.plan.price}/month
+                {nextInvoice && (
+                  <> • Renews on {nextInvoice.date}</>
+                )}
+              </p>
             </div>
-            <p className="text-muted-foreground mt-1 text-sm">
-              ₱{subscription.plan.price}/month • Renews on {subscription.end_date}
-            </p>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            {subscription.status === "pending" ? (
-              <Button
-                variant="default"
-                className="w-full sm:w-auto"
-                onClick={() => {
-                  if (subscription.payment_url) {
-                    window.location.href = subscription.payment_url;
-                  }
-                }}
-              >
-                Pay Now
-              </Button>
-            ) : (
-              <>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {subscription.status === "pending" ? (
                 <Button
                   variant="default"
                   className="w-full sm:w-auto"
-                  onClick={onUpgrade}
+                  onClick={() => {
+                    if (subscription.payment_url) {
+                      window.location.href = subscription.payment_url;
+                    }
+                  }}
                 >
-                  Upgrade Plan
+                  Pay Now
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                  onClick={onCancel}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? "Cancelling..." : "Cancel Plan"}
-                </Button>
-              </>
-            )}
+              ) : (
+                <>
+                  <Button
+                    variant="default"
+                    className="w-full sm:w-auto"
+                    onClick={onUpgrade}
+                  >
+                    Upgrade Plan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={() => setShowDialog(true)}
+                  >
+                    Cancel Plan
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to cancel your subscription? This action cannot be undone.
+          </p>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDialog(false)}
+              disabled={isCancelling}
+            >
+              No, Keep Plan
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancel}
+              disabled={isCancelling}
+            >
+              {isCancelling ? "Cancelling..." : "Yes, Cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

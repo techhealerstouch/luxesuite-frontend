@@ -29,7 +29,10 @@ const config: Config = {
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
+  				foreground: 'hsl(var(--secondary-foreground))',
+				  500: '#bb9659', // main color
+					600: '#a58348', // slightly darker
+					700: '#8f7037'  // even darker
   			},
   			muted: {
   				DEFAULT: 'hsl(var(--muted))',

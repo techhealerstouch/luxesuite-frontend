@@ -110,7 +110,7 @@ export function AuthenticatorProductDialog({
         </Tabs.Root>
         <div className="mb-0 flex justify-end">
           <Button
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white"
             variant="secondary"
             onClick={handleDownloadPDF}
           >

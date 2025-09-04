@@ -94,12 +94,12 @@ export default function AccountPage() {
       const response = await apiService.getSubscriptions();
       setCurrentPlans(response.data);
     } catch (error) {
-      console.error('Failed to fetch subscriptions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription information",
-        variant: "destructive",
-      });
+      // console.error('Failed to fetch subscriptions:', error);
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to load subscription information",
+      //   variant: "destructive",
+      // });
     } finally {
       setIsLoading(false);
     }

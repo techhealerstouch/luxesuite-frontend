@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Subscription, 
-  SubscriptionPlan, 
-} from "@/types/api/subscription";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Subscription, SubscriptionPlan } from "@/types/api/subscription";
 import { useToast } from "@/hooks/use-toast";
 import { apiService } from "@/lib/api-service";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { Invoice } from "@/types/api/invoice";
 
 // Components
 import CurrentPlanCard from "@/components/Subscription/CurrentPlanCard";
@@ -20,7 +23,9 @@ interface SubscriptionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   subscription: Subscription | null;
-  getStatusColor: (status: string) => "default" | "secondary" | "destructive" | "outline";
+  getStatusColor: (
+    status: string
+  ) => "default" | "secondary" | "destructive" | "outline";
 }
 
 export function SubscriptionDetailsDialog({
@@ -44,8 +49,10 @@ export function SubscriptionDetailsDialog({
         const plans = response.data;
 
         const filtered = plans
-          .filter(p => p.domain === subscription.plan.domain && p.slug !== "base")
-          .map(plan => ({
+          .filter(
+            (p) => p.domain === subscription.plan.domain && p.slug !== "base"
+          )
+          .map((plan) => ({
             ...plan,
             price: parseFloat(plan.price),
             features: [
@@ -69,23 +76,33 @@ export function SubscriptionDetailsDialog({
     if (open && subscription) fetchPlans();
   }, [open, subscription, toast]);
 
-  const handleCancel = async () => {
-    if (!subscription) return;
-    try {
-      await apiService.cancelSubscription(subscription.id.toString());
-      toast({
-        title: "Subscription cancelled",
-        description: "Your subscription has been successfully cancelled.",
-      });
-      onOpenChange(false);
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to cancel the subscription.",
-        variant: "destructive",
-      });
-    }
-  };
+  const [billingHistory, setBillingHistory] = useState<Invoice[]>([]);
+  const [isLoadingBilling, setIsLoadingBilling] = useState(false);
+
+  useEffect(() => {
+    const fetchBilling = async () => {
+      if (!subscription) return;
+      try {
+        setIsLoadingBilling(true);
+        const data = await apiService.getBillingHistory(
+          subscription.id.toString()
+        );
+        console.log("Data getBillingHistory", data);
+
+        setBillingHistory(data);
+      } catch (err) {
+        toast({
+          title: "Failed to load billing history",
+          description: "Unable to fetch invoices.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingBilling(false);
+      }
+    };
+
+    if (open && subscription) fetchBilling();
+  }, [open, subscription, toast]);
 
   return (
     <>
@@ -100,11 +117,16 @@ export function SubscriptionDetailsDialog({
               <CurrentPlanCard
                 subscription={subscription}
                 getStatusColor={getStatusColor}
+                billingHistory={billingHistory} // <- pass invoices here
                 onUpgrade={() => setShowUpgrade(true)}
                 onCancel={() => setShowCancelConfirm(true)}
               />
-              <PaymentMethodCard />
-              <BillingHistoryCard />
+
+              <PaymentMethodCard subscriptionId={subscription.id.toString()} />
+              <BillingHistoryCard
+                invoices={billingHistory}
+                isLoading={isLoadingBilling}
+              />
             </div>
           )}
 
@@ -117,17 +139,6 @@ export function SubscriptionDetailsDialog({
           )}
         </DialogContent>
       </Dialog>
-
-      <ConfirmDialog
-        open={showCancelConfirm}
-        onOpenChange={setShowCancelConfirm}
-        title="Cancel Subscription"
-        description="Are you sure you want to cancel your subscription? This action cannot be undone."
-        confirmText="Yes, Cancel It"
-        cancelText="No, Keep It"
-        onConfirm={handleCancel}
-        loading={false}
-      />
     </>
   );
 }

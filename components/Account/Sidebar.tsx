@@ -1,7 +1,7 @@
 import { User, CreditCard, Settings, Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import type { User as UserType } from "@/lib/api-service"
+import type { User as UserType } from "@/types/api/user"
 
 interface SidebarProps {
   activeSection: string
@@ -10,8 +10,16 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps) {
+  // Sidebar buttons configuration
+  const sections = [
+    { id: "account", label: "Account Information", icon: User },
+    { id: "subscription", label: "Subscription", icon: CreditCard },
+    { id: "settings", label: "Settings", icon: Settings },
+  ] as const
+
   return (
     <>
+      {/* User Card */}
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-4">
@@ -32,33 +40,41 @@ export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps)
         </CardContent>
       </Card>
 
+      {/* Navigation Buttons */}
       <Card>
         <CardContent className="p-0">
           <nav className="space-y-1">
-            <Button
-              variant={activeSection === "account" ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSection("account")}
-            >
-              <User className="mr-2 h-4 w-4" />
-              Account Information
-            </Button>
-            <Button
-              variant={activeSection === "subscription" ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSection("subscription")}
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Subscription
-            </Button>
-            <Button
-              variant={activeSection === "settings" ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => setActiveSection("settings")}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
+            {sections.map(({ id, label, icon: Icon }) => {
+              const isActive = activeSection === id
+              return (
+                <Button
+                  key={id}
+                  onClick={() => setActiveSection(id)}
+                  className={`
+                    w-full justify-start
+                    rounded-md
+                    transition-colors
+${
+  isActive
+    ? "bg-[hsl(var(--secondary))] text-white hover:bg-[hsl(var(--secondary))]"
+    : "bg-transparent text-[hsl(var(--white))] hover:bg-[hsl(var(--secondary))] hover:text-white"
+}
+
+
+                  `}
+                >
+<Icon
+  className={`mr-2 h-4 w-4 ${
+    isActive
+      ? "text-white" // icon stays primary when active
+      : "text-[hsl(var(--primary))] group-hover:text-white" // icon changes only on hover when not active
+  }`}
+/>
+
+                  {label}
+                </Button>
+              )
+            })}
           </nav>
         </CardContent>
       </Card>

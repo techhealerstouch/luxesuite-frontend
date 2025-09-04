@@ -130,6 +130,28 @@ async getTimezones(): Promise<TimezoneOption[]> {
     return apiClient.get(`/subscriptions/${id}`)
   }
 
+  async addNewPaymentMethod(subscriptionId: string): Promise<{ url: string }> {
+    const response = await apiClient.get(`/api/add-payment-method/${subscriptionId}`);
+    return response.data; // should return { url: string }
+  }
+
+  async cancelSubscription(id: string): Promise<any> {
+    return apiClient.post(`/api/subscription/${id}/cancel`);
+  }
+
+  async forceAttempt(planId: string, cycleId: string): Promise<any> {
+    try {
+      const response = await apiClient.post(
+        `/api/subscription/${planId}/cycle/${cycleId}/force-attempt`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error forcing subscription attempt:", error);
+      throw error;
+    }
+  }
+
+
   async createSubscription(data: {
     plan_id: string;
     service: string;
@@ -144,9 +166,22 @@ async getTimezones(): Promise<TimezoneOption[]> {
     return apiClient.put(`/api/subscriptions/${id}`, data)
   }
 
-  async cancelSubscription(id: string): Promise<void> {
-    return apiClient.delete(`/api/subscriptions/${id}`)
+async getBillingHistory(planId: string) {
+  try {
+    const res = await apiClient.get(`/api/billing-history/${planId}`);
+    console.log("Full response:", res);
+
+    // The invoices array is inside res.data
+    const invoices = Array.isArray(res.data) ? res.data : [];
+    console.log("Extracted invoices:", invoices);
+
+    return invoices;
+  } catch (err) {
+    console.error(err);
+    return [];
   }
+}
+
 
   // USERS
   async getAllUsers(): Promise<{ message: string; data: User[] }> {
