@@ -4,18 +4,24 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package } from "lucide-react";
 import {
-  Subscription,
-  SubscriptionPlan,
-} from "@/types/api/subscription";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Package } from "lucide-react";
+import { Subscription, SubscriptionPlan } from "@/types/api/subscription";
 import { apiService } from "@/lib/api-service";
 import { Invoice } from "@/types/api/invoice";
+import { Currency } from "@/components/Currency";
 
 interface CurrentPlanCardProps {
   subscription: Subscription;
-  getStatusColor: (status: string) => "default" | "secondary" | "destructive" | "outline";
+  getStatusColor: (
+    status: string
+  ) => "default" | "secondary" | "destructive" | "outline";
   onUpgrade: () => void;
   onCancel: () => void;
 }
@@ -33,7 +39,9 @@ export default function CurrentPlanCard({
   const handleCancel = async () => {
     setIsCancelling(true);
     try {
-      const res = await apiService.cancelSubscription(subscription.id.toString());
+      const res = await apiService.cancelSubscription(
+        subscription.id.toString()
+      );
       console.log("Cancel response:", res);
       window.location.reload();
       setShowDialog(false);
@@ -43,8 +51,6 @@ export default function CurrentPlanCard({
       setIsCancelling(false);
     }
   };
-
-  
 
   // Filter only SCHEDULED invoices
   const nextInvoice = billingHistory.find((inv) => inv.status === "SCHEDULED");
@@ -65,10 +71,13 @@ export default function CurrentPlanCard({
                 </Badge>
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
-                ₱{subscription.plan.price}/month
-                {nextInvoice && (
-                  <> • Renews on {nextInvoice.date}</>
-                )}
+                <Currency
+                  amount={Number(
+                    subscription.plan.price.replace(/[^\d.-]/g, "")
+                  )}
+                  from="PHP"
+                />
+                /month • Ends on {subscription.end_date}
               </p>
             </div>
 
@@ -99,7 +108,7 @@ export default function CurrentPlanCard({
                     className="w-full sm:w-auto"
                     onClick={() => setShowDialog(true)}
                   >
-                    Cancel Plan
+                    Deactivate Plan
                   </Button>
                 </>
               )}
@@ -115,7 +124,8 @@ export default function CurrentPlanCard({
             <DialogTitle>Cancel Subscription</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to cancel your subscription? This action cannot be undone.
+            Are you sure you want to cancel your subscription? This action
+            cannot be undone.
           </p>
           <DialogFooter className="mt-4">
             <Button

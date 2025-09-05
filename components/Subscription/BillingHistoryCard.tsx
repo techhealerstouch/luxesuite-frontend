@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, CreditCard } from "lucide-react";
 import { Invoice } from "@/types/api/invoice";
 import { apiService } from "@/lib/api-service";
-
+import { Currency } from "@/components/Currency";
 interface BillingHistoryCardProps {
   invoices: Invoice[];
   isLoading?: boolean;
@@ -53,7 +53,7 @@ export default function BillingHistoryCard({
     <Card>
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-          <h2 className="text-lg font-semibold">Billing History</h2>
+          <h2 className="text-lg font-semibold">Billing Cycle</h2>
           <Button variant="outline" size="sm" disabled={isLoading}>
             <Download className="mr-2 size-4" />
             Download All
@@ -94,7 +94,12 @@ export default function BillingHistoryCard({
                   >
                     {statusLabels[invoice.status] || invoice.status}
                   </span>
-                  <span className="font-medium">{invoice.amount}</span>
+                  {/* <span className="font-medium">{invoice.amount}</span> */}
+
+                  <Currency
+                    amount={Number(invoice.amount.replace(/[^\d.-]/g, ""))}
+                    from="PHP"
+                  />
 
                   {/* Pay Now button (only if unpaid) */}
                   {invoice.status !== "SUCCEEDED" && (

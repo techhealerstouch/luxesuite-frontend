@@ -122,7 +122,7 @@ export function SubscriptionDetailsDialog({
                 onCancel={() => setShowCancelConfirm(true)}
               />
 
-              <PaymentMethodCard subscriptionId={subscription.id.toString()} />
+              {/* <PaymentMethodCard subscriptionId={subscription.id.toString()} /> */}
               <BillingHistoryCard
                 invoices={billingHistory}
                 isLoading={isLoadingBilling}

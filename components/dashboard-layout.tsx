@@ -21,8 +21,14 @@ import {
   CreditCard,
   LogOut,
 } from "lucide-react";
+import { useCurrency } from "@/context/CurrencyContext";
+
+
+const currencies = ["PHP", "USD", "EUR"];
+
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const { currency, setCurrency } = useCurrency();
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -79,6 +85,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 );
               })}
             </nav>
+
+            {/* Currency Dropdown */}
+          <div className="mr-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">{currency}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" forceMount>
+                {currencies.map((c) => (
+                  <DropdownMenuItem key={c} onClick={() => setCurrency(c)}>
+                    {c}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
             {/* User Menu */}
             <DropdownMenu>

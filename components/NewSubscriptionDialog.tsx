@@ -36,6 +36,8 @@ import {
   CustomPlanUserLimit, 
   SubscriptionPlan, 
 } from "@/types/api/subscription";
+import { Currency } from "@/components/Currency";
+import { useRouter } from "next/navigation"
 
 interface NewSubscriptionDialogProps {
   onSelectPlan?: (plan: SubscriptionPlan, durationMonths: number) => void;
@@ -44,6 +46,7 @@ interface NewSubscriptionDialogProps {
 export function NewSubscriptionDialog({
   onSelectPlan,
 }: NewSubscriptionDialogProps) {
+  const router = useRouter();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [customLimits, setCustomLimits] = useState<CustomPlanUserLimit[]>([]);
   const [selectedService, setSelectedService] = useState("luxeoffice");
@@ -232,17 +235,17 @@ const handleCustomSubscription = async () => {
                             tier === "Professional" ? "border-primary" : ""
                           }`}
                         >
-                          <CardHeader className="text-center pb-2">
-                            {tier === "Professional" && (
-                              <Badge className="uppercase w-max self-center mb-3">
-                                Most popular
-                              </Badge>
-                            )}
-                            <CardTitle className="mb-7">{tier}</CardTitle>
-                            <span className="font-bold text-5xl">
-                              ₱{price.toFixed(2)}
-                            </span>
-                          </CardHeader>
+                        <CardHeader className="text-center pb-2">
+                          {tier === "Professional" && (
+                            <Badge className="uppercase w-max self-center mb-3">
+                              Most popular
+                            </Badge>
+                          )}
+                          <CardTitle className="mb-7">{tier}</CardTitle>
+                          <div className="text-5xl font-bold">
+                            <Currency amount={price} from="PHP" />
+                          </div>
+                        </CardHeader>
                           <CardDescription className="text-center w-11/12 mx-auto mb-4">
                             {tier === "Starter"
                               ? "Perfect to get started"
@@ -284,11 +287,11 @@ const handleCustomSubscription = async () => {
                               variant={
                                 tier === "Professional" ? undefined : "outline"
                               }
-                              onClick={() =>
-                                plan && handleSubscription(plan, duration)
-                              }
+      onClick={() =>
+        router.push(`/cart?planId=${plan.id}&duration=${duration}`)
+      }
                             >
-                              Subscribe
+                              Select Plan
                             </Button>
                           </CardFooter>
                         </Card>
