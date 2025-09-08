@@ -151,6 +151,12 @@ async getTimezones(): Promise<TimezoneOption[]> {
     }
   }
 
+    // Authenticator top-up
+  async topUpCredits(data: { user_id: number; credits: number }) {
+    return apiClient.post("/api/authenticator/top-up", data);
+  }
+
+
 
   async createSubscription(data: {
     plan_id: string;
