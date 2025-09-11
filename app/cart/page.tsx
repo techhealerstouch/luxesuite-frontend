@@ -22,24 +22,27 @@ import { Currency } from "@/components/Currency";
 import { apiService } from "@/lib/api-service";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ProtectedRoute } from "@/components/protected-route";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CartPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
+  const { toast } = useToast();
   const [plan, setPlan] = useState<any>(null);
   const [duration, setDuration] = useState<string>(
     searchParams.get("duration") || "3"
   );
   const [couponVisible, setCouponVisible] = useState(false);
   const [couponCode, setCouponCode] = useState("");
+const [loading, setLoading] = useState(false);
 
   const planId = searchParams.get("planId");
+  const trial = searchParams.get("trial") || "0"; // ✅ new: read trial from query
 
   useEffect(() => {
     if (planId) {
       apiService.getSubscriptionPlans().then((res) => {
-        const plans = res.data; // ✅ extract array
+        const plans = res.data;
         const found = plans.find((p: any) => String(p.id) === String(planId));
         setPlan(found);
       });
@@ -50,8 +53,11 @@ export default function CartPage() {
     (typeof basePrice === "string" ? parseFloat(basePrice) : basePrice) *
     months;
 
-  const handleContinue = async () => {
-    if (!plan) return;
+const handleContinue = async () => {
+  if (!plan) return;
+  setLoading(true);
+
+  try {
     const today = new Date();
     const start_date = today.toISOString().split("T")[0];
     const end = new Date(today);
@@ -65,18 +71,50 @@ export default function CartPage() {
       start_date,
       end_date,
       duration: durationMonths,
-      //coupon_code: couponCode || null, // send coupon if applied
+      trial: trial,
     });
 
-    const paymentUrl =
-      (res as any).payment_url || (res as any).actions?.[0]?.url;
+    console.log("✅ API Response:", res);
+
+    const paymentUrl = (res as any)?.payment_url || (res as any)?.actions?.[0]?.url;
     if (paymentUrl) {
+      toast({
+        title: "Redirecting...",
+        description: "Taking you to payment page.",
+      });
       window.location.assign(paymentUrl);
+      return;
     }
-  };
+
+    // If no redirect URL but success response
+    toast({
+      title: "Success",
+      description: "Subscription created.",
+    });
+  } catch (err: any) {
+    console.error("❌ API Error raw:", err);
+
+    // Extract message from many possible shapes (axios error, thrown Error, string, etc.)
+    const message =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      (typeof err === "string" ? err : null) ||
+      JSON.stringify(err);
+
+    toast({
+      title: "Subscription Error",
+      description: message || "Something went wrong. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const applyCoupon = () => {
-    // Optionally, you can verify the coupon via API
     alert(`Coupon "${couponCode}" applied!`);
   };
 
@@ -86,10 +124,8 @@ export default function CartPage() {
     <ProtectedRoute>
       <DashboardLayout>
         <div className="max-w-5xl mx-auto p-6">
-          {/* Header */}
           <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
 
-          {/* Grid for cards */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Plan Details Card */}
             <Card>
@@ -122,8 +158,8 @@ export default function CartPage() {
                     </SelectContent>
                   </Select>
                   <p className="text-gray-500 text-sm mt-2">
-                    Renews at <Currency amount={plan.price} from="PHP" />
-                    /mo. Cancel anytime.
+                        Renews at <Currency amount={plan.price} from="PHP" />
+                        /mo. Cancel anytime.
                   </p>
                 </div>
               </CardContent>
@@ -138,7 +174,10 @@ export default function CartPage() {
                 <ul className="space-y-2 text-sm divide-y divide-gray-200">
                   <li className="flex justify-between py-2">
                     <span className="text-md">
-                      <strong>{plan.name} - Luxe Proof</strong>
+                      <strong>
+                        {plan.name} - Luxe Proof{" "}
+                        {trial === "1" && "(Free Trial)"}
+                      </strong>
                     </span>
                   </li>
                   <li className="flex justify-between py-2">
@@ -184,17 +223,20 @@ export default function CartPage() {
 
                 <hr className="my-4 border-gray-300" />
 
-                <div className="mt-4 font-bold text-lg flex justify-between">
-                  <span>Total</span>
-                  <Currency
-                    amount={calculatePrice(plan.price, parseInt(duration))}
-                    from="PHP"
-                  />
-                </div>
+                {/* Hide total if trial */}
+                {trial !== "1" && (
+                  <div className="mt-4 font-bold text-lg flex justify-between">
+                    <span>Total</span>
+                    <Currency
+                      amount={calculatePrice(plan.price, parseInt(duration))}
+                      from="PHP"
+                    />
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button className="w-full" onClick={handleContinue}>
-                  Continue
+                  {trial === "1" ? "Start Free Trial" : "Continue"}
                 </Button>
               </CardFooter>
             </Card>

@@ -16,6 +16,7 @@ import { Subscription, SubscriptionPlan } from "@/types/api/subscription";
 import { apiService } from "@/lib/api-service";
 import { Invoice } from "@/types/api/invoice";
 import { Currency } from "@/components/Currency";
+import { format } from "date-fns";
 
 interface CurrentPlanCardProps {
   subscription: Subscription;
@@ -63,9 +64,12 @@ export default function CurrentPlanCard({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Package className="text-primary size-5" />
-                <h2 className="text-lg font-semibold">
-                  {subscription.plan.name} | {subscription.plan.domain}
-                </h2>
+<h2 className="text-lg font-semibold">
+  {subscription.payment_url === "free-trial"
+    ? "Free Trial"
+    : `${subscription.plan.name} | ${subscription.plan.domain}`}
+</h2>
+
                 <Badge variant={getStatusColor(subscription.status)}>
                   {subscription.status}
                 </Badge>
@@ -77,12 +81,16 @@ export default function CurrentPlanCard({
                   )}
                   from="PHP"
                 />
-                /month • Ends on {subscription.end_date}
+                /month • Access to Luxe Proof ends on{" "}
+                {subscription.end_date
+                  ? format(new Date(subscription.end_date), "MMM dd, yyyy")
+                  : ""}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {subscription.status === "pending" ? (
+              {/* Show Pay Now if pending */}
+              {subscription.status === "pending" && (
                 <Button
                   variant="default"
                   className="w-full sm:w-auto"
@@ -94,24 +102,29 @@ export default function CurrentPlanCard({
                 >
                   Pay Now
                 </Button>
-              ) : (
-                <>
-                  <Button
-                    variant="default"
-                    className="w-full sm:w-auto"
-                    onClick={onUpgrade}
-                  >
-                    Upgrade Plan
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                    onClick={() => setShowDialog(true)}
-                  >
-                    Deactivate Plan
-                  </Button>
-                </>
               )}
+
+              {/* Show Upgrade + Deactivate if not pending or cancelled */}
+              {subscription.status !== "pending" &&
+                subscription.status !== "cancelled" &&
+                subscription.payment_url !== "free-trial" && (
+                  <>
+                    <Button
+                      variant="default"
+                      className="w-full sm:w-auto"
+                      onClick={onUpgrade}
+                    >
+                      Upgrade Plan
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      onClick={() => setShowDialog(true)}
+                    >
+                      Deactivate Plan
+                    </Button>
+                  </>
+                )}
             </div>
           </div>
         </CardContent>

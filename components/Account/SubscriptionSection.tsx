@@ -102,10 +102,12 @@ export function SubscriptionSection({
                 className="border rounded-lg p-4 space-y-4 cursor-pointer hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h3 className="font-semibold text-base sm:text-lg">
-                    {subscription.plan?.name ?? "No plan available"} |{" "}
-                    {subscription.service}.com
-                  </h3>
+<h3 className="font-semibold text-base sm:text-lg">
+  {subscription.payment_url === "free-trial"
+    ? `Free Trial | ${subscription.service}`
+    : `${subscription.plan?.name ?? "No plan available"} | ${subscription.service}`}
+</h3>
+
                   <Badge variant={getStatusColor(subscription.status)}>
                     {subscription.status.charAt(0).toUpperCase() +
                       subscription.status.slice(1)}

@@ -164,8 +164,13 @@ async getTimezones(): Promise<TimezoneOption[]> {
     start_date: string;
     end_date: string;
     duration: number;
+    trial: any;
   }): Promise<NewSubscription> {
     return apiClient.post("/api/subscriptions", data);
+  }
+  
+  async createTrialSubscription(): Promise<any> {
+    return apiClient.post("/api/subscription/trial");
   }
 
   async updateSubscription(id: string, data: Partial<Subscription>): Promise<Subscription> {

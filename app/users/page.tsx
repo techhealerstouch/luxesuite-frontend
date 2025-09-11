@@ -64,7 +64,30 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   const pageSize = 10;
+  const handleCreateUser = async () => {
+    try {
+      const subs = await apiService.getSubscriptions();
 
+      const hasActive = subs?.data?.some((sub: any) => sub.status === "active");
+
+      if (hasActive) {
+        router.push(`/users/create`);
+      } else {
+        toast({
+          title: "Subscription required",
+          description: "You need an active subscription to create a user.",
+          variant: "default",
+        });
+      }
+    } catch (err) {
+      console.error("Error checking subscription:", err);
+      toast({
+        title: "Error",
+        description: "Unable to verify subscription. Please try again.",
+        variant: "default",
+      });
+    }
+  };
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
@@ -135,10 +158,7 @@ export default function UsersPage() {
                   <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
-              <Button
-                onClick={() => router.push(`/users/create`)}
-                className="mt-2 sm:mt-0"
-              >
+              <Button onClick={handleCreateUser} className="mt-2 sm:mt-0">
                 Create User
               </Button>
             </div>
@@ -153,7 +173,9 @@ export default function UsersPage() {
                     <TableHead className="w-[15%]">Role</TableHead>
                     <TableHead className="w-[15%]">Website</TableHead>
                     <TableHead className="w-[12%]">Status</TableHead>
-                    <TableHead className="w-[18%] min-w-[140px]">Actions</TableHead>
+                    <TableHead className="w-[18%] min-w-[140px]">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,7 +199,9 @@ export default function UsersPage() {
                           className="border"
                         >
                           <TableCell className="w-[18%]">{user.name}</TableCell>
-                          <TableCell className="w-[22%]">{user.email}</TableCell>
+                          <TableCell className="w-[22%]">
+                            {user.email}
+                          </TableCell>
                           <TableCell className="w-[15%]">
                             {user.roles
                               ?.map((role: string) =>
@@ -193,8 +217,10 @@ export default function UsersPage() {
                           </TableCell>
                           <TableCell className="w-[15%]">
                             <div className="flex items-center gap-1">
-                              <Globe className="flex-shrink-0 h-4 w-4" /> 
-                              <span className="truncate">{user.service || "-"}</span>
+                              <Globe className="flex-shrink-0 h-4 w-4" />
+                              <span className="truncate">
+                                {user.service || "-"}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className="w-[12%]">
@@ -205,7 +231,9 @@ export default function UsersPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => router.push(`/users/view/${user.id}`)}
+                                onClick={() =>
+                                  router.push(`/users/view/${user.id}`)
+                                }
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
                                 <Eye className="h-4 w-4" />
@@ -213,13 +241,15 @@ export default function UsersPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => router.push(`/users/edit/${user.id}`)}
+                                onClick={() =>
+                                  router.push(`/users/edit/${user.id}`)
+                                }
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="ghost"
                                 className="h-8 w-8 p-0 flex-shrink-0"
                               >
@@ -246,7 +276,9 @@ export default function UsersPage() {
                   Page {currentPage} of {totalPages}
                 </span>
                 <Button
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   Next

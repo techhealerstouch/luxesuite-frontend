@@ -25,6 +25,16 @@ import {
 import { cn } from "@/lib/utils";
 import { apiService } from "@/lib/api-service";
 import { format, toZonedTime } from "date-fns-tz";
+import { useCurrency } from "@/context/CurrencyContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const currencies = ["PHP", "USD", "EUR"];
 
 interface AccountSectionProps {
   formData: {
@@ -55,6 +65,7 @@ export function AccountSection({
   const [open, setOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState("");
   const [timezonesLoaded, setTimezonesLoaded] = useState(false);
+  const { currency, setCurrency } = useCurrency();
 
   // Fetch timezones only once on component mount
   useEffect(() => {
@@ -272,6 +283,21 @@ export function AccountSection({
                 </div>
               )}
             </div>
+          </div>
+
+                    <div className="mr-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">{currency}</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" forceMount>
+                {currencies.map((c) => (
+                  <DropdownMenuItem key={c} onClick={() => setCurrency(c)}>
+                    {c}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Button type="submit" disabled={isSaving}>

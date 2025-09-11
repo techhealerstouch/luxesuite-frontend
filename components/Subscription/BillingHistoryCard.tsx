@@ -9,6 +9,7 @@ import { Currency } from "@/components/Currency";
 interface BillingHistoryCardProps {
   invoices: Invoice[];
   isLoading?: boolean;
+  onPaymentSuccess?: () => void;
 }
 
 // Map statuses to badge variants
@@ -32,14 +33,16 @@ const statusLabels: Record<string, string> = {
 export default function BillingHistoryCard({
   invoices,
   isLoading,
+  onPaymentSuccess,
 }: BillingHistoryCardProps) {
   const handleAdvancePayment = async (planId: string, cycleId: string) => {
     try {
       const res = await apiService.forceAttempt(planId, cycleId);
       console.log("Advance payment result:", res);
 
-      if (res.success) {
+      if (res) {
         alert("Payment attempted successfully!");
+        onPaymentSuccess?.(); // 🔥 trigger refresh
       } else {
         alert("Failed to attempt payment.");
       }
@@ -94,31 +97,25 @@ export default function BillingHistoryCard({
                   >
                     {statusLabels[invoice.status] || invoice.status}
                   </span>
-                  {/* <span className="font-medium">{invoice.amount}</span> */}
 
                   <Currency
                     amount={Number(invoice.amount.replace(/[^\d.-]/g, ""))}
                     from="PHP"
                   />
 
-                  {/* Pay Now button (only if unpaid) */}
-                  {invoice.status !== "SUCCEEDED" && (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() =>
-                        handleAdvancePayment(invoice.plan_id, invoice.id)
-                      }
-                    >
-                      <CreditCard className="mr-1 size-4" />
-                      Pay Now
-                    </Button>
-                  )}
-
-                  {/* Download button */}
-                  <Button variant="ghost" size="sm">
-                    <Download className="size-4" />
-                  </Button>
+                  {invoice.status !== "SUCCEEDED" &&
+                    invoice.status !== "CANCELLED" && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() =>
+                          handleAdvancePayment(invoice.plan_id, invoice.id)
+                        }
+                      >
+                        <CreditCard className="mr-1 size-4" />
+                        Pay Now
+                      </Button>
+                    )}
                 </div>
               </div>
             ))}

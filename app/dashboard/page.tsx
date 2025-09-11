@@ -1,19 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ add router
 import { ProtectedRoute } from "@/components/protected-route";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Globe, MoreVertical, RefreshCw } from "lucide-react";
-import {
-  apiService,
-  type Subscription,
-  type SubscriptionPlan,
-} from "@/lib/api-service";
+import { apiService } from "@/lib/api-service";
+import { Subscription, SubscriptionPlan } from "@/types/api/subscription";
 import { useToast } from "@/hooks/use-toast";
 import { NewSubscriptionDialog } from "@/components/NewSubscriptionDialog";
-import { SubscriptionDetailsDialog } from "@/components/SubscriptionDetailsDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,38 +17,43 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { authService } from "@/lib/auth-service";
+import { User } from "@/types/api/user";
+
 export default function DashboardPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+  const router = useRouter(); // ✅ initialize router
 
-const fetchSubscriptions = async () => {
-  setIsLoading(true);
-  setIsRefreshing(true);
+  const fetchSubscriptions = async () => {
+    setIsLoading(true);
+    setIsRefreshing(true);
 
-  try {
-    const response = await apiService.getSubscriptions();
-    setSubscriptions(response.data);
-  } catch (error: any) {
-    // If 404 and message matches, just set empty array
-    if (
-      error.response?.status === 404 &&
-      error.response.data?.message === "No subscriptions found for this account."
-    ) {
+    try {
+      const response = await apiService.getSubscriptions();
+      setSubscriptions(response.data);
+    } catch (error: any) {
       setSubscriptions([]);
-    } else {
-      // For other errors, you can still set empty or handle differently
-      setSubscriptions([]);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-  } finally {
-    setIsLoading(false);
-    setIsRefreshing(false);
-  }
-};
+  };
 
+  const fetchUser = async () => {
+    try {
+      const data = await authService.getCurrentUser();
+      setUser(data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  };
 
   useEffect(() => {
+    fetchUser();
     fetchSubscriptions();
   }, []);
 
@@ -93,7 +94,8 @@ const fetchSubscriptions = async () => {
                 />
                 Refresh
               </Button>
-              <NewSubscriptionDialog onSelectPlan={handleSelectPlan} />
+
+              {/* ✅ Show Start Free Trial button if trial_subscription === 1 */}
             </div>
           </div>
 
@@ -107,74 +109,73 @@ const fetchSubscriptions = async () => {
                 <p className="text-muted-foreground mb-4">
                   Subscribe to our services to get started with Luxe Suite.
                 </p>
+
+                {Number(user?.account?.trial_subscription) === 1 ? (
+                  <Button onClick={() => router.push("/free-trial")}>
+                    Start Free Trial
+                  </Button>
+                ) : (
+                  <NewSubscriptionDialog
+                    onSelectPlan={handleSelectPlan}
+                    user={user}
+                  />
+                )}
               </CardContent>
             </Card>
           ) : (
-            // Website Card
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {subscriptions
                 .filter((subscription) => subscription.status !== "pending")
-                .map((subscription) => {
-                  const serviceImage =
-                    subscription.service === "luxeoffice"
-                      ? "/placeholder-logo.png"
-                      : subscription.service === "luxedb"
-                      ? "/placeholder-logo.png"
-                      : subscription.service === "luxeflip"
-                      ? "/placeholder-logo.png"
-                      : "/placeholder-logo.png";
-
-                  return (
-                    <Card
-                      key={subscription.id}
-                      className="relative hover:shadow-lg transition-shadow"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4 w-full">
-                          <img
-                            src={serviceImage}
-                            alt={`${subscription.service} logo`}
-                            className="w-16 h-16 object-contain rounded"
-                          />
-                          <div className="space-y-2">
-                            <div>
-                              <p className="text-xs text-muted-foreground">
-                                Domain
-                              </p>
-                              <p className="font-medium">
-                                {subscription.service}.com
-                              </p>
-                            </div>
-                          </div>
-                          <div className="ml-auto">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                >
-                                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <a
-                                    href={`https://${subscription.service}.com`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    View Website
-                                  </a>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                .map((subscription) => (
+                  <Card
+                    key={subscription.id}
+                    className="relative hover:shadow-lg transition-shadow"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4 w-full">
+                        <img
+                          src={"/placeholder-logo.png"}
+                          alt={`${subscription.service} logo`}
+                          className="w-16 h-16 object-contain rounded"
+                        />
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Domain
+                            </p>
+                            <p className="font-medium">
+                              {subscription.service}.com
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        <div className="ml-auto">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                              >
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <a
+                                  href={`https://${subscription.service}.com`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  View Website
+                                </a>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
         </div>

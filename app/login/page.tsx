@@ -124,11 +124,11 @@ export default function LoginPage() {
 
     // Build registration URL with PKCE
     const params = new URLSearchParams({
-      client_id: clientId,
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "", // optional
       code_challenge: codeChallenge,
+      client_id: clientId,
       code_challenge_method: "S256",
       // Optional: add state param if you want CSRF protection
       state: crypto.randomUUID(),

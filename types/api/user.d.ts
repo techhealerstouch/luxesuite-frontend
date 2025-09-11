@@ -8,5 +8,6 @@ export interface User {
     id: number;
     name: string;
     slug: string;
+    trial_subscription: string;
   };
 }

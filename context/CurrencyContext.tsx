@@ -13,17 +13,33 @@ const CurrencyContext = createContext<CurrencyContextType>({
 });
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState("PHP");
+  const [currency, setCurrencyState] = useState("PHP");
+
+  // Save to localStorage whenever it changes
+  const setCurrency = (c: string) => {
+    setCurrencyState(c);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currency", c);
+    }
+  };
 
   useEffect(() => {
-    // Auto-detect currency from browser locale
-    const userLocale = navigator.language; // e.g., "en-PH" or "en-US"
-    const localeToCurrency: Record<string, string> = {
-      "en-PH": "PHP",
-      "en-US": "USD",
-      "en-GB": "GBP",
-    };
-    setCurrency(localeToCurrency[userLocale] || "USD");
+    if (typeof window !== "undefined") {
+      // Check if user already selected a currency
+      const storedCurrency = localStorage.getItem("currency");
+      if (storedCurrency) {
+        setCurrencyState(storedCurrency);
+      } else {
+        // Fallback: auto-detect from locale if nothing saved
+        const userLocale = navigator.language; // e.g., "en-PH" or "en-US"
+        const localeToCurrency: Record<string, string> = {
+          "en-PH": "PHP",
+          "en-US": "USD",
+          "en-GB": "GBP",
+        };
+        setCurrencyState(localeToCurrency[userLocale] || "PHP");
+      }
+    }
   }, []);
 
   return (

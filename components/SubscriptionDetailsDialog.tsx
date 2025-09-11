@@ -79,30 +79,29 @@ export function SubscriptionDetailsDialog({
   const [billingHistory, setBillingHistory] = useState<Invoice[]>([]);
   const [isLoadingBilling, setIsLoadingBilling] = useState(false);
 
+  const fetchBilling = async () => {
+    if (!subscription) return;
+    try {
+      setIsLoadingBilling(true);
+      const data = await apiService.getBillingHistory(
+        subscription.id.toString()
+      );
+      console.log("Data getBillingHistory", data);
+      setBillingHistory(data);
+    } catch (err) {
+      toast({
+        title: "Failed to load billing history",
+        description: "Unable to fetch invoices.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingBilling(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchBilling = async () => {
-      if (!subscription) return;
-      try {
-        setIsLoadingBilling(true);
-        const data = await apiService.getBillingHistory(
-          subscription.id.toString()
-        );
-        console.log("Data getBillingHistory", data);
-
-        setBillingHistory(data);
-      } catch (err) {
-        toast({
-          title: "Failed to load billing history",
-          description: "Unable to fetch invoices.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoadingBilling(false);
-      }
-    };
-
     if (open && subscription) fetchBilling();
-  }, [open, subscription, toast]);
+  }, [open, subscription]);
 
   return (
     <>
@@ -118,15 +117,27 @@ export function SubscriptionDetailsDialog({
                 subscription={subscription}
                 getStatusColor={getStatusColor}
                 billingHistory={billingHistory} // <- pass invoices here
-                onUpgrade={() => setShowUpgrade(true)}
-                onCancel={() => setShowCancelConfirm(true)}
+                onUpgrade={() => {
+                  if (subscription.payment_url !== "free-trial") {
+                    setShowUpgrade(true);
+                  }
+                }}
+                onCancel={() => {
+                  if (subscription.payment_url !== "free-trial") {
+                    setShowCancelConfirm(true);
+                  }
+                }}
               />
 
               {/* <PaymentMethodCard subscriptionId={subscription.id.toString()} /> */}
-              <BillingHistoryCard
-                invoices={billingHistory}
-                isLoading={isLoadingBilling}
-              />
+
+              {subscription.payment_url !== "free-trial" && (
+                <BillingHistoryCard
+                  invoices={billingHistory}
+                  isLoading={isLoadingBilling}
+                  onPaymentSuccess={fetchBilling}
+                />
+              )}
             </div>
           )}
 

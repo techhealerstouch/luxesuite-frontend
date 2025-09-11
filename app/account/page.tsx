@@ -22,7 +22,9 @@ import { Sidebar } from "@/components/Account/Sidebar";
 import { AccountSection } from "@/components/Account/AccountSection";
 import { SubscriptionSection } from "@/components/Account/SubscriptionSection";
 import { SettingsSection } from "@/components/Account/SettingsSection";
+import { useCurrency } from "@/context/CurrencyContext";
 
+const currencies = ["PHP", "USD", "EUR"];
 type ActiveSection = "account" | "subscription" | "settings";
 
 export default function AccountPage() {
@@ -33,7 +35,8 @@ export default function AccountPage() {
   const [accountSettings, setAccountSettings] =
     useState<AccountSettings | null>(null);
   const [userDataLoaded, setUserDataLoaded] = useState(false);
-
+  const { currency, setCurrency } = useCurrency();
+  
   const { user } = useAuth();
   const { toast } = useToast();
 
