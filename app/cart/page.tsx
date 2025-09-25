@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -24,20 +24,25 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { ProtectedRoute } from "@/components/protected-route";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CartPage() {
-  const searchParams = useSearchParams();
+export default function CartPage({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}) {
   const router = useRouter();
   const { toast } = useToast();
-  const [plan, setPlan] = useState<any>(null);
+
+  // ✅ read params directly from props (no suspense needed)
+  const planId = searchParams.planId;
+  const trial = searchParams.trial || "0";
   const [duration, setDuration] = useState<string>(
-    searchParams.get("duration") || "3"
+    searchParams.duration || "3"
   );
+
+  const [plan, setPlan] = useState<any>(null);
   const [couponVisible, setCouponVisible] = useState(false);
   const [couponCode, setCouponCode] = useState("");
-const [loading, setLoading] = useState(false);
-
-  const planId = searchParams.get("planId");
-  const trial = searchParams.get("trial") || "0"; // ✅ new: read trial from query
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (planId) {
@@ -53,66 +58,63 @@ const [loading, setLoading] = useState(false);
     (typeof basePrice === "string" ? parseFloat(basePrice) : basePrice) *
     months;
 
-const handleContinue = async () => {
-  if (!plan) return;
-  setLoading(true);
+  const handleContinue = async () => {
+    if (!plan) return;
+    setLoading(true);
 
-  try {
-    const today = new Date();
-    const start_date = today.toISOString().split("T")[0];
-    const end = new Date(today);
-    const durationMonths = parseInt(duration);
-    end.setMonth(end.getMonth() + durationMonths);
-    const end_date = end.toISOString().split("T")[0];
+    try {
+      const today = new Date();
+      const start_date = today.toISOString().split("T")[0];
+      const end = new Date(today);
+      const durationMonths = parseInt(duration);
+      end.setMonth(end.getMonth() + durationMonths);
+      const end_date = end.toISOString().split("T")[0];
 
-    const res = await apiService.createSubscription({
-      plan_id: plan.id,
-      service: plan.domain,
-      start_date,
-      end_date,
-      duration: durationMonths,
-      trial: trial,
-    });
-
-    console.log("✅ API Response:", res);
-
-    const paymentUrl = (res as any)?.payment_url || (res as any)?.actions?.[0]?.url;
-    if (paymentUrl) {
-      toast({
-        title: "Redirecting...",
-        description: "Taking you to payment page.",
+      const res = await apiService.createSubscription({
+        plan_id: plan.id,
+        service: plan.domain,
+        start_date,
+        end_date,
+        duration: durationMonths,
+        trial: trial,
       });
-      window.location.assign(paymentUrl);
-      return;
+
+      console.log("✅ API Response:", res);
+
+      const paymentUrl =
+        (res as any)?.payment_url || (res as any)?.actions?.[0]?.url;
+      if (paymentUrl) {
+        toast({
+          title: "Redirecting...",
+          description: "Taking you to payment page.",
+        });
+        window.location.assign(paymentUrl);
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Subscription created.",
+      });
+    } catch (err: any) {
+      console.error("❌ API Error raw:", err);
+
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        (typeof err === "string" ? err : null) ||
+        JSON.stringify(err);
+
+      toast({
+        title: "Subscription Error",
+        description: message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    // If no redirect URL but success response
-    toast({
-      title: "Success",
-      description: "Subscription created.",
-    });
-  } catch (err: any) {
-    console.error("❌ API Error raw:", err);
-
-    // Extract message from many possible shapes (axios error, thrown Error, string, etc.)
-    const message =
-      err?.response?.data?.message ||
-      err?.response?.data?.error ||
-      err?.message ||
-      (typeof err === "string" ? err : null) ||
-      JSON.stringify(err);
-
-    toast({
-      title: "Subscription Error",
-      description: message || "Something went wrong. Please try again.",
-      variant: "destructive",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  };
 
   const applyCoupon = () => {
     alert(`Coupon "${couponCode}" applied!`);
@@ -158,8 +160,8 @@ const handleContinue = async () => {
                     </SelectContent>
                   </Select>
                   <p className="text-gray-500 text-sm mt-2">
-                        Renews at <Currency amount={plan.price} from="PHP" />
-                        /mo. Cancel anytime.
+                    Renews at <Currency amount={plan.price} from="PHP" />
+                    /mo. Cancel anytime.
                   </p>
                 </div>
               </CardContent>

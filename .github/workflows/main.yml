@@ -25,7 +25,7 @@ jobs:
             git fetch origin staging
             git checkout staging
             git pull origin staging
-            pm2 restart next-app1 || pm2 start npm --name "next-app1" -- start -- -p 3001
+            pm2 restart luxesuite-frontend || pm2 start npm --name "luxesuite-frontend" -- start -- -p 3001
 
   production:
     if: github.ref == 'refs/heads/master'
@@ -46,4 +46,4 @@ jobs:
             git fetch origin master
             git checkout master
             git pull origin master
-            pm2 restart next-app1 || pm2 start npm --name "next-app1" -- start -- -p 3001
+            pm2 restart luxesuite-frontend || pm2 start npm --name "luxesuite-frontend" -- start -- -p 3001

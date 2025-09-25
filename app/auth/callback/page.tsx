@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/lib/auth-service";
 import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
 
-export default function OAuthCallback() {
+function OAuthCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const baseUrl = process.env.NEXT_PUBLIC_API_URL!;
@@ -44,5 +45,19 @@ export default function OAuthCallback() {
     <div className="flex h-screen items-center justify-center flex-col gap-4">
       <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
     </div>
+  );
+}
+
+export default function OAuthCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
+        </div>
+      }
+    >
+      <OAuthCallbackContent />
+    </Suspense>
   );
 }
