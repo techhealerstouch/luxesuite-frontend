@@ -138,7 +138,7 @@ export default function CurrentPlanCard({
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             Are you sure you want to cancel your subscription? This action
-            cannot be undone.
+            cannot be undone. Remaining paid months/cycles will be refunded to the payment method you've linked.
           </p>
           <DialogFooter className="mt-4">
             <Button

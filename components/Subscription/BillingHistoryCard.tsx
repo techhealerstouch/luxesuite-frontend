@@ -2,14 +2,17 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, CreditCard } from "lucide-react";
+import { FileText, Download, CreditCard, RefreshCw } from "lucide-react";
 import { Invoice } from "@/types/api/invoice";
 import { apiService } from "@/lib/api-service";
 import { Currency } from "@/components/Currency";
+import { useToast } from "@/hooks/use-toast";
+
 interface BillingHistoryCardProps {
   invoices: Invoice[];
   isLoading?: boolean;
   onPaymentSuccess?: () => void;
+  onRefresh?: () => void;
 }
 
 // Map statuses to badge variants
@@ -34,21 +37,35 @@ export default function BillingHistoryCard({
   invoices,
   isLoading,
   onPaymentSuccess,
+  onRefresh,
 }: BillingHistoryCardProps) {
+  const { toast } = useToast();
+
   const handleAdvancePayment = async (planId: string, cycleId: string) => {
     try {
       const res = await apiService.forceAttempt(planId, cycleId);
       console.log("Advance payment result:", res);
 
       if (res) {
-        alert("Payment attempted successfully!");
+        toast({
+          title: "Payment Success",
+          description: "Payment attempted successfully!",
+        });
         onPaymentSuccess?.(); // 🔥 trigger refresh
       } else {
-        alert("Failed to attempt payment.");
+        toast({
+          title: "Payment Failed",
+          description: "Failed to attempt payment.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      toast({
+        title: "Error",
+        description: "Something went wrong.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -56,7 +73,17 @@ export default function BillingHistoryCard({
     <Card>
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-          <h2 className="text-lg font-semibold">Billing Cycle</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold">Billing Cycle</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onRefresh}
+              disabled={isLoading}
+            >
+              <RefreshCw className="size-4" />
+            </Button>
+          </div>
           <Button variant="outline" size="sm" disabled={isLoading}>
             <Download className="mr-2 size-4" />
             Download All
@@ -104,7 +131,8 @@ export default function BillingHistoryCard({
                   />
 
                   {invoice.status !== "SUCCEEDED" &&
-                    invoice.status !== "CANCELLED" && (
+                    invoice.status !== "CANCELLED" &&
+                    invoice.status !== "REFUNDED" && (
                       <Button
                         variant="default"
                         size="sm"

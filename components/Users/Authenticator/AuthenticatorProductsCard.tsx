@@ -26,10 +26,11 @@ import {
   GitPullRequest,
   Cpu,
   Activity,
+  Link as LinkIcon,
 } from "lucide-react";
 import { apiService } from "@/lib/api-service";
 import { generateAuthenticationPDF } from "@/utils/pdf-generator";
-
+import { ReferenceCodeDialog } from "@/components/ReferenceCodeDialog";
 
 interface AuthenticatorProductsCardProps {
   userId: string;
@@ -73,8 +74,12 @@ export function AuthenticatorProductsCard({
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [refDialogOpen, setRefDialogOpen] = useState(false);
+  const [selectedRefProduct, setSelectedRefProduct] = useState<any | null>(
+    null
+  );
 
-const handleDownloadPDF = (product: any) => {
+  const handleDownloadPDF = (product: any) => {
     if (product) {
       generateAuthenticationPDF(product);
     }
@@ -183,8 +188,22 @@ const handleDownloadPDF = (product: any) => {
                       >
                         <Eye />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDownloadPDF(product)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDownloadPDF(product)}
+                      >
                         <Download />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setSelectedRefProduct(product); // pass the product
+                          setRefDialogOpen(true);
+                        }}
+                      >
+                        <LinkIcon />
                       </Button>
                     </TableCell>
                   </motion.tr>
@@ -214,17 +233,21 @@ const handleDownloadPDF = (product: any) => {
           </Button>
         </div>
       </CardContent>
+      <ReferenceCodeDialog
+        open={refDialogOpen}
+        onOpenChange={setRefDialogOpen}
+        authenticatedProductId={selectedRefProduct?.id ?? 0} // pass the ID
+      />
 
       {/* Dialog */}
       <AuthenticatorProductDialog
         product={selectedProduct}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        />
+      />
     </Card>
   );
 }
-
 
 // Helper function to format keys nicely
 function formatTitle(key: string) {

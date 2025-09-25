@@ -151,10 +151,33 @@ async getTimezones(): Promise<TimezoneOption[]> {
     }
   }
 
+    async retryRefund(cycleId: string): Promise<any> {
+      try {
+        const response = await apiClient.post(
+          `/api/subscription/cycle/${cycleId}/retry-refund`
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Error forcing subscription attempt:", error);
+        throw error;
+      }
+    }
+
     // Authenticator top-up
   async topUpCredits(data: { user_id: number; credits: number }) {
     return apiClient.post("/api/authenticator/top-up", data);
   }
+
+  //NFC
+async refCodeNfcCheckValidity(data: { ref_code: string }) {
+  return apiClient.get(`/api/nfc/check-ref-code/${data.ref_code}`);
+}
+
+async patchNfcLink(data: { ref_code: string; authenticated_product_id: number }) {
+  return apiClient.put(
+    `/api/nfc/${data.ref_code}/link/${data.authenticated_product_id}`
+  );
+}
 
 
 
