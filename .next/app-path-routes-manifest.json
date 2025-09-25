@@ -10,9 +10,9 @@
   "/page": "/",
   "/subscription/error/page": "/subscription/error",
   "/subscription/success/page": "/subscription/success",
-  "/users/create/page": "/users/create",
   "/register/page": "/register",
-  "/users/edit/[id]/page": "/users/edit/[id]",
+  "/users/create/page": "/users/create",
   "/users/page": "/users",
+  "/users/edit/[id]/page": "/users/edit/[id]",
   "/users/view/[id]/page": "/users/view/[id]"
 }
