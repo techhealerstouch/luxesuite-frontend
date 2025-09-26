@@ -8,10 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  type Subscription,
-  type SubscriptionPlan,
-} from "@/lib/api-service";
+import { type Subscription, type SubscriptionPlan } from "@/lib/api-service";
 import { NewSubscriptionDialog } from "@/components/NewSubscriptionDialog";
 import { SubscriptionDetailsDialog } from "@/components/SubscriptionDetailsDialog";
 
@@ -63,6 +60,12 @@ export function SubscriptionSection({
     // Implement your plan selection logic here
   };
 
+  // Filter out luxeproof and luxeflip services
+  const filteredSubscriptions =
+    subscriptions?.filter(
+      (sub) => sub.service !== "luxeproof" && sub.service !== "luxeflip"
+    ) ?? [];
+
   return (
     <Card>
       <CardHeader>
@@ -86,9 +89,9 @@ export function SubscriptionSection({
 
       {/* Subscription List */}
       <CardContent className="space-y-6">
-        {subscriptions && subscriptions.length > 0 ? (
+        {filteredSubscriptions.length > 0 ? (
           <>
-            {subscriptions.map((subscription) => (
+            {filteredSubscriptions.map((subscription) => (
               <div
                 key={subscription.id}
                 onClick={() => handleViewSubscription(subscription)}
@@ -102,11 +105,13 @@ export function SubscriptionSection({
                 className="border rounded-lg p-4 space-y-4 cursor-pointer hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-<h3 className="font-semibold text-base sm:text-lg">
-  {subscription.payment_url === "free-trial"
-    ? `Free Trial | ${subscription.service}`
-    : `${subscription.plan?.name ?? "No plan available"} | ${subscription.service}`}
-</h3>
+                  <h3 className="font-semibold text-base sm:text-lg">
+                    {subscription.payment_url === "free-trial"
+                      ? `Free Trial | ${subscription.service}`
+                      : `${subscription.plan?.name ?? "No plan available"} | ${
+                          subscription.service
+                        }`}
+                  </h3>
 
                   <Badge variant={getStatusColor(subscription.status)}>
                     {subscription.status.charAt(0).toUpperCase() +

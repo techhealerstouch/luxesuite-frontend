@@ -9,10 +9,10 @@
   "/login/page": "app/login/page.js",
   "/page": "app/page.js",
   "/register/page": "app/register/page.js",
-  "/subscription/error/page": "app/subscription/error/page.js",
-  "/users/create/page": "app/users/create/page.js",
-  "/users/edit/[id]/page": "app/users/edit/[id]/page.js",
-  "/users/page": "app/users/page.js",
   "/subscription/success/page": "app/subscription/success/page.js",
-  "/users/view/[id]/page": "app/users/view/[id]/page.js"
+  "/users/edit/[id]/page": "app/users/edit/[id]/page.js",
+  "/users/create/page": "app/users/create/page.js",
+  "/subscription/error/page": "app/subscription/error/page.js",
+  "/users/view/[id]/page": "app/users/view/[id]/page.js",
+  "/users/page": "app/users/page.js"
 }
