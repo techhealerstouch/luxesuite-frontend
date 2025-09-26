@@ -59,9 +59,9 @@ export default function CreateUserPage() {
     } catch (error: any) {
       console.error(error);
       toast({
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to create user",
-        variant: "destructive",
+        title: "Failed to create user",
+        description: error?.message || "Failed to create user",
+        variant: "default",
       });
     } finally {
       setLoading(false);

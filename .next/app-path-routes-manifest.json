@@ -1,18 +1,18 @@
 {
   "/_not-found/page": "/_not-found",
   "/account/page": "/account",
+  "/cart/page": "/cart",
   "/auth/callback/page": "/auth/callback",
+  "/dashboard/page": "/dashboard",
   "/authenticator/apply/page": "/authenticator/apply",
   "/free-trial/page": "/free-trial",
   "/login/page": "/login",
-  "/cart/page": "/cart",
   "/page": "/",
   "/register/page": "/register",
-  "/dashboard/page": "/dashboard",
-  "/subscription/success/page": "/subscription/success",
   "/subscription/error/page": "/subscription/error",
+  "/subscription/success/page": "/subscription/success",
   "/users/create/page": "/users/create",
-  "/users/edit/[id]/page": "/users/edit/[id]",
   "/users/page": "/users",
-  "/users/view/[id]/page": "/users/view/[id]"
+  "/users/view/[id]/page": "/users/view/[id]",
+  "/users/edit/[id]/page": "/users/edit/[id]"
 }
