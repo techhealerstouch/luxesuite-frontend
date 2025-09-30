@@ -164,9 +164,29 @@ async getTimezones(): Promise<TimezoneOption[]> {
     }
 
     // Authenticator top-up
-  async topUpCredits(data: { user_id: number; credits: number }) {
-    return apiClient.post("/api/authenticator/top-up", data);
-  }
+async topUpCredits(data: {
+  user_id?: number; // optional if backend auto-detects
+  credit_id: number;
+  quantity: number;
+  shipping: {
+    full_name: string;
+    street: string;
+    barangay: string;
+    city: string;
+    province: string;
+    postal_code: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+}) {
+  return apiClient.post("/api/authenticator/top-up", data);
+}
+
+
+    async getAllCredits() {
+      return apiClient.get("/api/credits");
+    }
 
   //NFC
 async refCodeNfcCheckValidity(data: { ref_code: string }) {

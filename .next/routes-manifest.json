@@ -15,6 +15,14 @@
   "headers": [],
   "dynamicRoutes": [
     {
+      "page": "/checkout/credits/[id]",
+      "regex": "^/checkout/credits/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/checkout/credits/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/users/edit/[id]",
       "regex": "^/users/edit/([^/]+?)(?:/)?$",
       "routeKeys": {

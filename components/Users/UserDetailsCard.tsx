@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Card,
+  Card, CardHeader, CardTitle, CardDescription,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { UserStatusBadge } from "@/components/Users/UserStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -15,10 +12,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { apiService } from "@/lib/api-service"; // adjust path if needed
+import { apiService } from "@/lib/api-service";
+import { Coins, CreditCard, Package, Gift } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface UserDetailsCardProps {
   user: any;
@@ -26,45 +25,44 @@ interface UserDetailsCardProps {
 
 export function UserDetailsCard({ user }: UserDetailsCardProps) {
   const [showModal, setShowModal] = useState(false);
-  const [topUpAmount, setTopUpAmount] = useState("");
+  const [creditsOptions, setCreditsOptions] = useState<any[]>([]);
+  const [selectedCredit, setSelectedCredit] = useState<any>(null);
+  const router = useRouter();
 
   const hasAuthenticatorRole = user.roles?.some(
     (role: any) => role.name === "authenticator"
   );
 
-  const handleTopUp = async () => {
-    try {
-      const res = await apiService.topUpCredits({
-        user_id: user.id,
-        credits: parseInt(topUpAmount, 10),
+  useEffect(() => {
+    if (showModal) {
+      apiService.getAllCredits().then((res: any) => {
+        const data = res?.data ?? res;
+        setCreditsOptions(data || []);
       });
-
-      // If apiService already unwraps .data, use res directly
-      const data = res?.data ?? res;
-
-      if (data.success && data.invoice_url) {
-        window.open(data.invoice_url, "_blank");
-        setShowModal(false);
-        setTopUpAmount("");
-      } else {
-        alert("Failed to create invoice. Please try again.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Top up failed. Please try again.");
     }
+  }, [showModal]);
+
+  // choose icon based on package name
+  const getIcon = (name: string) => {
+    if (!name) return <Coins className="w-8 h-8 text-primary mr-4" />;
+    const lower = name.toLowerCase();
+    if (lower.includes("starter")) return <Gift className="w-8 h-8 text-primary mr-4" />;
+    if (lower.includes("basic")) return <Package className="w-8 h-8 text-primary mr-4" />;
+    if (lower.includes("standard")) return <CreditCard className="w-8 h-8 text-primary mr-4" />;
+    return <Coins className="w-8 h-8 text-primary mr-4" />;
   };
 
   return (
     <>
       <Card className="mb-6 shadow-lg rounded-2xl border border-gray-200">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">User Details</CardTitle>
-          <CardDescription>
-            Basic information and account details of the user.
+          <CardTitle className="text-lg font-semibold">User Information</CardTitle>
+          <CardDescription className="text-sm text-gray-500">
+            Overview of user details and account status
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
           <div>
             <span className="font-medium">Name:</span> {user.name}
           </div>
@@ -93,42 +91,80 @@ export function UserDetailsCard({ user }: UserDetailsCardProps) {
             <span className="font-medium">Service:</span> {user.service || "-"}
           </div>
 
-          {/* Show credits only if roles contain "authenticator" */}
           {hasAuthenticatorRole && user.authenticator_credits && (
-<div className="flex items-center gap-2">
-  <span className="font-medium">Credits:</span>
-  <span>{user.authenticator_credits.credits}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Credits:</span>
+              <span>
+                <strong>{user.authenticator_credits.credits}</strong> authentication(s)
+              </span>
 
-  <Button
-    variant="outline"
-    className="text-primary border-primary hover:bg-primary hover:text-white h-6 px-2 py-0 text-xs rounded-full"
-    onClick={() => setShowModal(true)}
-  >
-    + Top up
-  </Button>
-</div>
-
+              <Button
+                variant="outline"
+                className="text-primary border-primary hover:bg-primary hover:text-white h-6 px-2 py-0 text-xs rounded-full"
+                onClick={() => setShowModal(true)}
+              >
+                + Add
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Top Up Credits</DialogTitle>
+            <DialogTitle>Select a Credit Package</DialogTitle>
+            <DialogDescription>
+              Choose from the available credit packages below to top up your account. 
+              Each package includes a set number of authentications.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <label className="block text-sm font-medium">Credits</label>
-            <Input
-              type="number"
-              value={topUpAmount}
-              onChange={(e) => setTopUpAmount(e.target.value)}
-              placeholder="Enter credits amount"
-            />
+
+          <div className="space-y-4 mt-4">
+            {creditsOptions.map((credit) => (
+              <Card
+                key={credit.id}
+                className={`cursor-pointer border-2 transition-all ${
+                  selectedCredit?.id === credit.id
+                    ? "border-primary shadow-md"
+                    : "border-gray-200"
+                }`}
+                onClick={() => setSelectedCredit(credit)}
+              >
+                <CardContent className="flex items-center justify-between p-4">
+                  {getIcon(credit.name)}
+                  <div className="flex-1">
+                    <p className="font-semibold">{credit.name}</p>
+                    <p className="text-sm text-green-600">
+                      {credit.quantity} authentications
+                    </p>
+                    {credit.description && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        {credit.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-base font-bold text-primary">
+                      ₱{credit.price}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <DialogFooter>
-            <Button onClick={handleTopUp}>Top up</Button>
+
+          <DialogFooter className="mt-6">
+            <Button
+              onClick={() => {
+                if (!selectedCredit) return alert("Select a package first.");
+                router.push(`/checkout/credits/${selectedCredit.id}`);
+              }}
+              disabled={!selectedCredit}
+            >
+              Check Out
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
