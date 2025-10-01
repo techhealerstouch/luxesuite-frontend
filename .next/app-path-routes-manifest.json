@@ -10,10 +10,10 @@
   "/login/page": "/login",
   "/page": "/",
   "/register/page": "/register",
-  "/subscription/error/page": "/subscription/error",
   "/subscription/success/page": "/subscription/success",
   "/users/create/page": "/users/create",
   "/users/edit/[id]/page": "/users/edit/[id]",
+  "/subscription/error/page": "/subscription/error",
   "/users/page": "/users",
   "/users/view/[id]/page": "/users/view/[id]"
 }
