@@ -18,6 +18,17 @@ export interface Shipment {
   updated_at: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface AddedBy {
+  id: number;
+  name: string;
+}
+
 export interface Order {
   id: number;
   invoice_number: string;
@@ -34,4 +45,6 @@ export interface Order {
   created_at: string;
   updated_at: string;
   shipment?: Shipment;
+  user?: User;
+  added_by?: AddedBy;
 }

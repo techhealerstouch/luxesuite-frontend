@@ -18,6 +18,7 @@ import {
 import { apiService } from "@/lib/api-service";
 import { Coins, CreditCard, Package, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UserDetailsCardProps {
   user: any;
@@ -28,6 +29,12 @@ export function UserDetailsCard({ user }: UserDetailsCardProps) {
   const [creditsOptions, setCreditsOptions] = useState<any[]>([]);
   const [selectedCredit, setSelectedCredit] = useState<any>(null);
   const router = useRouter();
+    const { user: loggedUser } = useAuth();
+
+  if (!loggedUser) {
+    console.error("No logged in user found!");
+    return null; // Or render a loading state
+  }
 
   const hasAuthenticatorRole = user.roles?.some(
     (role: any) => role.name === "authenticator"
@@ -159,7 +166,7 @@ export function UserDetailsCard({ user }: UserDetailsCardProps) {
             <Button
               onClick={() => {
                 if (!selectedCredit) return alert("Select a package first.");
-router.push(`/checkout/credits/${selectedCredit.id}?user=${user.id}`);
+router.push(`/checkout/credits/${selectedCredit.id}?user=${user.id}&added_by=${loggedUser.id}`);
 
 
               }}

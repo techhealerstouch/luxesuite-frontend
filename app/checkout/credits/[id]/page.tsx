@@ -76,10 +76,12 @@ export default function CheckoutCreditsPage() {
 
     const searchParams = new URLSearchParams(window.location.search);
     const userId = searchParams.get("user");
+    const addedBy = searchParams.get("added_by");
 
     try {
       const res = await apiService.topUpCredits({
         user_id: userId ? Number(userId) : undefined,
+        added_by: addedBy ? Number(addedBy) : undefined,
         credit_id: credit.id,
         quantity: credit.quantity,
         shipping,

@@ -166,6 +166,7 @@ async getTimezones(): Promise<TimezoneOption[]> {
     // Authenticator top-up
 async topUpCredits(data: {
   user_id?: number; // optional if backend auto-detects
+  added_by?: number; // optional if backend auto-detects
   credit_id: number;
   quantity: number;
   shipping: {
