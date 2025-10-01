@@ -13,9 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ProtectedRoute } from "@/components/protected-route";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CheckoutCreditsPage() {
   const { id } = useParams();
+  const { toast } = useToast();
   const [credit, setCredit] = useState<any>(null);
   const [shipping, setShipping] = useState<any>({
     full_name: "",
@@ -28,6 +30,7 @@ export default function CheckoutCreditsPage() {
     email: "",
     phone: "",
   });
+  const [errors, setErrors] = useState<any>({});
 
   useEffect(() => {
     apiService.getAllCredits().then((res: any) => {
@@ -37,14 +40,51 @@ export default function CheckoutCreditsPage() {
     });
   }, [id]);
 
+  const validateShipping = () => {
+    const newErrors: any = {};
+    if (!shipping.full_name.trim())
+      newErrors.full_name = "Full name is required";
+    if (!shipping.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(shipping.email))
+      newErrors.email = "Invalid email format";
+    if (!shipping.phone.trim()) newErrors.phone = "Phone number is required";
+    else if (!/^\d{10,11}$/.test(shipping.phone.replace(/\D/g, "")))
+      newErrors.phone = "Invalid phone number";
+    if (!shipping.street.trim())
+      newErrors.street = "Street address is required";
+    if (!shipping.barangay.trim()) newErrors.barangay = "Barangay is required";
+    if (!shipping.city.trim()) newErrors.city = "City is required";
+    if (!shipping.province.trim()) newErrors.province = "Province is required";
+    if (!shipping.postal_code.trim())
+      newErrors.postal_code = "Postal code is required";
+    if (!shipping.country.trim()) newErrors.country = "Country is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleBuyNow = async () => {
     if (!credit) return;
+
+    if (!validateShipping()) {
+      toast({
+        title: "Validation",
+        description: "Please input shipping details",
+      });
+      return;
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const userId = searchParams.get("user");
+
     try {
       const res = await apiService.topUpCredits({
+        user_id: userId ? Number(userId) : undefined,
         credit_id: credit.id,
         quantity: credit.quantity,
         shipping,
       });
+
       const data = res?.data ?? res;
       if (data.success && data.invoice_url) {
         window.open(data.invoice_url, "_blank");
@@ -59,9 +99,32 @@ export default function CheckoutCreditsPage() {
 
   if (!credit) return <p>Loading...</p>;
 
-const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE ?? 150);
-const total = Number(credit.price) + shippingFee;
+  const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE ?? 150);
+  const total = Number(credit.price) + shippingFee;
 
+  const renderInput = (
+    label: string,
+    value: string,
+    field: string,
+    type = "text",
+    placeholder = ""
+  ) => (
+    <div className="flex flex-col">
+      <label className="text-sm font-medium mb-1">{label}</label>
+      <input
+        type={type}
+        className={`border rounded-md px-3 py-2 ${
+          errors[field] ? "border-red-500" : ""
+        }`}
+        value={value}
+        onChange={(e) => setShipping({ ...shipping, [field]: e.target.value })}
+        placeholder={placeholder}
+      />
+      {errors[field] && (
+        <span className="text-red-500 text-xs mt-1">{errors[field]}</span>
+      )}
+    </div>
+  );
 
   return (
     <ProtectedRoute>
@@ -77,139 +140,59 @@ const total = Number(credit.price) + shippingFee;
             </CardHeader>
             <CardContent>
               <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Full Name */}
-                <div className="col-span-2 flex flex-col">
-                  <label className="text-sm font-medium mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.full_name}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, full_name: e.target.value })
-                    }
-                    placeholder="Enter your full name"
-                  />
+                <div className="col-span-2">
+                  {renderInput(
+                    "Full Name",
+                    shipping.full_name,
+                    "full_name",
+                    "text",
+                    "Enter your full name"
+                  )}
                 </div>
-
-                {/* Email */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">Email</label>
-                  <input
-                    type="email"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.email}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, email: e.target.value })
-                    }
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                {/* Phones */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.phone}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, phone: e.target.value })
-                    }
-                    placeholder="09XXXXXXXXX"
-                  />
-                </div>
-
-                {/* Address Section Separator */}
+                {renderInput(
+                  "Email",
+                  shipping.email,
+                  "email",
+                  "email",
+                  "you@example.com"
+                )}
+                {renderInput(
+                  "Phone Number",
+                  shipping.phone,
+                  "phone",
+                  "tel",
+                  "09XXXXXXXXX"
+                )}
                 <div className="col-span-2 border-t pt-4">
                   <h4 className="text-sm font-semibold mb-2">
                     Address Information
                   </h4>
                 </div>
-
-                {/* Street */}
-                <div className="col-span-2 flex flex-col">
-                  <label className="text-sm font-medium mb-1">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.street}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, street: e.target.value })
-                    }
-                    placeholder="House No., Street Name"
-                  />
+                <div className="col-span-2">
+                  {renderInput(
+                    "Street Address",
+                    shipping.street,
+                    "street",
+                    "text",
+                    "House No., Street Name"
+                  )}
                 </div>
-
-                {/* Barangay */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">Barangay</label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.barangay}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, barangay: e.target.value })
-                    }
-                  />
-                </div>
-
-                {/* City */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">City</label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.city}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, city: e.target.value })
-                    }
-                  />
-                </div>
-
-                {/* Province */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">Province</label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.province}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, province: e.target.value })
-                    }
-                  />
-                </div>
-
-                {/* Postal Code */}
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium mb-1">
-                    Postal Code
-                  </label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.postal_code}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, postal_code: e.target.value })
-                    }
-                  />
-                </div>
-
-                {/* Country */}
-                <div className="col-span-2 flex flex-col">
-                  <label className="text-sm font-medium mb-1">Country</label>
-                  <input
-                    type="text"
-                    className="border rounded-md px-3 py-2"
-                    value={shipping.country}
-                    onChange={(e) =>
-                      setShipping({ ...shipping, country: e.target.value })
-                    }
-                    placeholder="Philippines"
-                  />
+                {renderInput("Barangay", shipping.barangay, "barangay")}
+                {renderInput("City", shipping.city, "city")}
+                {renderInput("Province", shipping.province, "province")}
+                {renderInput(
+                  "Postal Code",
+                  shipping.postal_code,
+                  "postal_code"
+                )}
+                <div className="col-span-2">
+                  {renderInput(
+                    "Country",
+                    shipping.country,
+                    "country",
+                    "text",
+                    "Philippines"
+                  )}
                 </div>
               </form>
             </CardContent>
@@ -224,13 +207,11 @@ const total = Number(credit.price) + shippingFee;
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Package Info */}
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium">{credit.name}</span>
                   <span className="font-medium">₱{credit.price}</span>
                 </div>
-                {/* Child Items */}
                 <div className="ml-4 text-sm text-gray-600 space-y-1">
                   <div className="flex justify-between">
                     <span>• Authentications</span>
@@ -243,13 +224,11 @@ const total = Number(credit.price) + shippingFee;
                 </div>
               </div>
 
-              {/* Fees */}
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Shipping Fee</span>
                 <span>₱{shippingFee}</span>
               </div>
 
-              {/* Total */}
               <div className="flex justify-between font-semibold border-t pt-2">
                 <span>Total</span>
                 <span>₱{total}</span>

@@ -159,7 +159,9 @@ export function UserDetailsCard({ user }: UserDetailsCardProps) {
             <Button
               onClick={() => {
                 if (!selectedCredit) return alert("Select a package first.");
-                router.push(`/checkout/credits/${selectedCredit.id}`);
+router.push(`/checkout/credits/${selectedCredit.id}?user=${user.id}`);
+
+
               }}
               disabled={!selectedCredit}
             >
