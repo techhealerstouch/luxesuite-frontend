@@ -25,6 +25,7 @@ jobs:
             git fetch origin staging
             git checkout staging
             git pull origin staging
+            rm -rf /var/www/luxesuite-frontend/.next/cache
             pm2 restart luxesuite-frontend || pm2 start npm --name "luxesuite-frontend" -- start -- -p 3001
 
   production:
