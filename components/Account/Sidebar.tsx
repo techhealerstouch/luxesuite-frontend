@@ -1,21 +1,32 @@
-import { User, CreditCard, Settings, Building } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import type { User as UserType } from "@/types/api/user"
+import { User, CreditCard, Settings, Building, Package } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import type { User as UserType } from "@/types/api/user";
 
 interface SidebarProps {
-  activeSection: string
-  setActiveSection: (section: "account" | "subscription" | "settings") => void
-  user?: UserType
+  activeSection: string;
+  setActiveSection: (section: "account" | "subscription" | "orders" | "settings") => void;
+  user?: UserType;
 }
 
-export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps) {
+export function Sidebar({
+  activeSection,
+  setActiveSection,
+  user,
+}: SidebarProps) {
   // Sidebar buttons configuration
   const sections = [
     { id: "account", label: "Account Information", icon: User },
     { id: "subscription", label: "Subscription", icon: CreditCard },
+    { id: "orders", label: "Orders", icon: Package },
     { id: "settings", label: "Settings", icon: Settings },
-  ] as const
+  ] as const;
 
   return (
     <>
@@ -45,7 +56,7 @@ export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps)
         <CardContent className="p-0">
           <nav className="space-y-1">
             {sections.map(({ id, label, icon: Icon }) => {
-              const isActive = activeSection === id
+              const isActive = activeSection === id;
               return (
                 <Button
                   key={id}
@@ -54,30 +65,28 @@ export function Sidebar({ activeSection, setActiveSection, user }: SidebarProps)
                     w-full justify-start
                     rounded-md
                     transition-colors
-${
-  isActive
-    ? "bg-[hsl(var(--secondary))] text-white hover:bg-[hsl(var(--secondary))]"
-    : "bg-transparent text-[hsl(var(--white))] hover:bg-[hsl(var(--secondary))] hover:text-white"
-}
-
-
+                    ${
+                      isActive
+                        ? "bg-[hsl(var(--secondary))] text-white hover:bg-[hsl(var(--secondary))]"
+                        : "bg-transparent text-[hsl(var(--white))] hover:bg-[hsl(var(--secondary))] hover:text-white"
+                    }
                   `}
                 >
-<Icon
-  className={`mr-2 h-4 w-4 ${
-    isActive
-      ? "text-white" // icon stays primary when active
-      : "text-[hsl(var(--primary))] group-hover:text-white" // icon changes only on hover when not active
-  }`}
-/>
+                  <Icon
+                    className={`mr-2 h-4 w-4 ${
+                      isActive
+                        ? "text-white" // icon stays primary when active
+                        : "text-[hsl(var(--primary))] group-hover:text-white" // icon changes only on hover when not active
+                    }`}
+                  />
 
                   {label}
                 </Button>
-              )
+              );
             })}
           </nav>
         </CardContent>
       </Card>
     </>
-  )
+  );
 }

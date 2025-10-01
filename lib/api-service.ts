@@ -187,6 +187,19 @@ async topUpCredits(data: {
     async getAllCredits() {
       return apiClient.get("/api/credits");
     }
+    //orders
+async getOrders(page: number = 1, search: string = "") {
+  const query = new URLSearchParams();
+  query.append("page", page.toString());
+  if (search) query.append("search", search);
+
+  return apiClient.get(`/api/orders?${query.toString()}`);
+}
+
+
+    async updateDeliverShipment(id: number) {
+      return apiClient.post(`/api/orders/shipment/${id}/deliver`);
+    }
 
   //NFC
 async refCodeNfcCheckValidity(data: { ref_code: string }) {

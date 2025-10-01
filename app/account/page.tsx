@@ -20,12 +20,13 @@ import { useToast } from "@/hooks/use-toast";
 
 import { Sidebar } from "@/components/Account/Sidebar";
 import { AccountSection } from "@/components/Account/AccountSection";
+import OrdersSection from "@/components/Account/OrdersSection";
 import { SubscriptionSection } from "@/components/Account/SubscriptionSection";
 import { SettingsSection } from "@/components/Account/SettingsSection";
 import { useCurrency } from "@/context/CurrencyContext";
 
 const currencies = ["PHP", "USD", "EUR"];
-type ActiveSection = "account" | "subscription" | "settings";
+type ActiveSection = "account" | "subscription" | "orders" | "settings";
 
 export default function AccountPage() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("account");
@@ -319,6 +320,9 @@ export default function AccountPage() {
                   subscriptions={currentPlans}
                   isLoading={isLoading}
                 />
+              )}
+              {!isLoading && activeSection === "orders" && (
+                <OrdersSection />
               )}
               {!isLoading && activeSection === "settings" && (
                 <SettingsSection
