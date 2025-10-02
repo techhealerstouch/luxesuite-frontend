@@ -1,8 +1,8 @@
 {
   "/_not-found/page": "/_not-found",
-  "/auth/callback/page": "/auth/callback",
   "/account/page": "/account",
   "/authenticator/apply/page": "/authenticator/apply",
+  "/auth/callback/page": "/auth/callback",
   "/cart/page": "/cart",
   "/checkout/credits/[id]/page": "/checkout/credits/[id]",
   "/dashboard/page": "/dashboard",
@@ -11,8 +11,8 @@
   "/page": "/",
   "/register/page": "/register",
   "/subscription/error/page": "/subscription/error",
-  "/users/create/page": "/users/create",
   "/subscription/success/page": "/subscription/success",
+  "/users/create/page": "/users/create",
   "/users/edit/[id]/page": "/users/edit/[id]",
   "/users/page": "/users",
   "/users/view/[id]/page": "/users/view/[id]"

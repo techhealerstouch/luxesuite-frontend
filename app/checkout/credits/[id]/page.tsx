@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ProtectedRoute } from "@/components/protected-route";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // ✅ import Alert
+import { XCircle } from "lucide-react"; // optional icon
 
 export default function CheckoutCreditsPage() {
   const { id } = useParams();
@@ -31,6 +33,7 @@ export default function CheckoutCreditsPage() {
     phone: "",
   });
   const [errors, setErrors] = useState<any>({});
+  const [checkoutError, setCheckoutError] = useState<string | null>(null); // ✅ new state
 
   useEffect(() => {
     apiService.getAllCredits().then((res: any) => {
@@ -64,6 +67,8 @@ export default function CheckoutCreditsPage() {
   };
 
   const handleBuyNow = async () => {
+    setCheckoutError(null); // ✅ reset previous error
+
     if (!credit) return;
 
     if (!validateShipping()) {
@@ -79,24 +84,34 @@ export default function CheckoutCreditsPage() {
     const addedBy = searchParams.get("added_by");
 
     try {
-      const res = await apiService.topUpCredits({
-        user_id: userId ? Number(userId) : undefined,
-        added_by: addedBy ? Number(addedBy) : undefined,
-        credit_id: credit.id,
-        quantity: credit.quantity,
-        shipping,
-      });
+  const res = await apiService.topUpCredits({
+    user_id: userId ? Number(userId) : undefined,
+    added_by: addedBy ? Number(addedBy) : undefined,
+    credit_id: credit.id,
+    quantity: credit.quantity,
+    shipping,
+  });
 
-      const data = res?.data ?? res;
-      if (data.success && data.invoice_url) {
-        window.open(data.invoice_url, "_blank");
-      } else {
-        alert("Failed to process checkout.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Checkout failed.");
-    }
+  // ✅ Always check res.data first, fallback to res
+  const data = res?.data ? res.data : res;
+
+  if (data.success && data.invoice_url) {
+    window.open(data.invoice_url, "_blank");
+  } else {
+    setCheckoutError(data?.message || "Failed to process checkout."); // ✅ your API message
+  }
+} catch (err: any) {
+
+  // ✅ If API sent a JSON error with "message"
+  if (err?.response?.data?.message) {
+    setCheckoutError(err.response.data.message);
+  } else if (err?.message) {
+    setCheckoutError(err.message);
+  } else {
+    setCheckoutError("Checkout failed. Please try again.");
+  }
+}
+
   };
 
   if (!credit) return <p>Loading...</p>;
@@ -235,6 +250,14 @@ export default function CheckoutCreditsPage() {
                 <span>Total</span>
                 <span>₱{total}</span>
               </div>
+
+              {/* ✅ Error Alert under Buy Now */}
+              {checkoutError && (
+                <Alert variant="destructive" className="mt-4">
+                  <XCircle className="h-4 w-4" />
+                  <AlertTitle>{checkoutError}</AlertTitle>
+                </Alert>
+              )}
 
               <Button className="w-full mt-4" onClick={handleBuyNow}>
                 Buy Now

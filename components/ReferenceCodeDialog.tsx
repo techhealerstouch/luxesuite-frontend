@@ -162,8 +162,8 @@ export function ReferenceCodeDialog({
 
       //onOpenChange(false);
     } catch (err: any) {
-      console.error(err);
-      alert("Failed to link NFC. Please try again.");
+          setStatus("invalid");
+          setMessage(err.message);
     } finally {
       setSubmitLoading(false);
     }

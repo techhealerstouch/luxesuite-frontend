@@ -26,6 +26,7 @@ import {
   GitPullRequest,
   Cpu,
   Activity,
+  Globe,
   Link as LinkIcon,
 } from "lucide-react";
 import { apiService } from "@/lib/api-service";
@@ -188,6 +189,7 @@ export function AuthenticatorProductsCard({
                       >
                         <Eye />
                       </Button>
+
                       <Button
                         size="sm"
                         variant="ghost"
@@ -195,16 +197,31 @@ export function AuthenticatorProductsCard({
                       >
                         <Download />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setSelectedRefProduct(product); // pass the product
-                          setRefDialogOpen(true);
-                        }}
-                      >
-                        <LinkIcon />
-                      </Button>
+
+                      {product.nfc_link ? (
+                        // If NFC link exists -> show Website (globe) icon button
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            window.open(product.nfc_link.url, "_blank")
+                          }
+                        >
+                          <Globe className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        // Otherwise -> show Link button (open dialog)
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedRefProduct(product);
+                            setRefDialogOpen(true);
+                          }}
+                        >
+                          <LinkIcon className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </motion.tr>
                 ))}
