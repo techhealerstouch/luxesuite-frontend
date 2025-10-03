@@ -25,6 +25,32 @@ import { OrderDetails } from "@/components/orders/order-details";
 import { ShipmentInformation } from "@/components/orders/shipment-information";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
+// ✅ Helper for status badge
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "PENDING":
+      return (
+        <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-orange-500 rounded-full">
+          Pending
+        </span>
+      );
+    case "PAID":
+      return (
+        <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-full">
+          Paid
+        </span>
+      );
+    case "EXPIRED":
+      return (
+        <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">
+          Expired
+        </span>
+      );
+    default:
+      return <span>{status}</span>;
+  }
+}
+
 export default function OrdersSection() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -120,7 +146,7 @@ export default function OrdersSection() {
                       </button>
                     </TableCell>
                     <TableCell>{order.credit_name}</TableCell>
-                    <TableCell>{order.status}</TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>
                       {new Date(order.created_at).toLocaleDateString()}
                     </TableCell>

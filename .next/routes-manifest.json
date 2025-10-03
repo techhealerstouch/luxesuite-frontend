@@ -77,6 +77,18 @@
       "namedRegex": "^/cart(?:/)?$"
     },
     {
+      "page": "/credits/failure",
+      "regex": "^/credits/failure(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/credits/failure(?:/)?$"
+    },
+    {
+      "page": "/credits/success",
+      "regex": "^/credits/success(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/credits/success(?:/)?$"
+    },
+    {
       "page": "/dashboard",
       "regex": "^/dashboard(?:/)?$",
       "routeKeys": {},

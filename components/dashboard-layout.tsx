@@ -20,6 +20,7 @@ import {
   Settings,
   CreditCard,
   LogOut,
+  Package
 } from "lucide-react";
 import {
   Sheet,
@@ -178,7 +179,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    href="/account"
+                    href="/account?section=settings"
                     className="cursor-pointer text-primary hover:text-accent"
                   >
                     <Settings className="mr-2 h-4 w-4 text-primary" />
@@ -187,11 +188,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
-                    href="/account"
+                    href="/account?section=subscription"
                     className="cursor-pointer text-primary hover:text-accent"
                   >
                     <CreditCard className="mr-2 h-4 w-4 text-primary" />
                     Subscription
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/account?section=orders"
+                    className="cursor-pointer text-primary hover:text-accent"
+                  >
+                    <Package className="mr-2 h-4 w-4 text-primary" />
+                    Orders
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

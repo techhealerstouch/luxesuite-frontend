@@ -32,7 +32,7 @@ export function ShipmentInformation({ order }: { order: Order }) {
   }
 
   const steps = [
-    { key: "pending", label: "Processing", icon: CheckCircle2 },
+    { key: "pending", label: "Pending", icon: CheckCircle2 },
     { key: "confirmed", label: "Confirmed", icon: Package },
     { key: "shipped", label: "Shipped", icon: Truck },
     { key: "delivered", label: "Delivered", icon: Home },

@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ProtectedRoute } from "@/components/protected-route";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // ✅ import Alert
-import { XCircle } from "lucide-react"; // optional icon
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { XCircle, Clock, Info, Loader2 } from "lucide-react"; // ✅ Loader2 for spinner
 
 export default function CheckoutCreditsPage() {
   const { id } = useParams();
@@ -33,7 +33,8 @@ export default function CheckoutCreditsPage() {
     phone: "",
   });
   const [errors, setErrors] = useState<any>({});
-  const [checkoutError, setCheckoutError] = useState<string | null>(null); // ✅ new state
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // ✅ new loading state
 
   useEffect(() => {
     apiService.getAllCredits().then((res: any) => {
@@ -67,7 +68,7 @@ export default function CheckoutCreditsPage() {
   };
 
   const handleBuyNow = async () => {
-    setCheckoutError(null); // ✅ reset previous error
+    setCheckoutError(null);
 
     if (!credit) return;
 
@@ -79,39 +80,44 @@ export default function CheckoutCreditsPage() {
       return;
     }
 
+    setLoading(true); // ✅ start loading
+
     const searchParams = new URLSearchParams(window.location.search);
     const userId = searchParams.get("user");
     const addedBy = searchParams.get("added_by");
 
     try {
-  const res = await apiService.topUpCredits({
-    user_id: userId ? Number(userId) : undefined,
-    added_by: addedBy ? Number(addedBy) : undefined,
-    credit_id: credit.id,
-    quantity: credit.quantity,
-    shipping,
-  });
+      const res = await apiService.topUpCredits({
+        user_id: userId ? Number(userId) : undefined,
+        added_by: addedBy ? Number(addedBy) : undefined,
+        credit_id: credit.id,
+        quantity: credit.quantity,
+        source: "luxesuite",
+        shipping,
+      });
 
-  // ✅ Always check res.data first, fallback to res
-  const data = res?.data ? res.data : res;
+      const data = res?.data ? res.data : res;
 
-  if (data.success && data.invoice_url) {
-    window.open(data.invoice_url, "_blank");
-  } else {
-    setCheckoutError(data?.message || "Failed to process checkout."); // ✅ your API message
-  }
-} catch (err: any) {
+      if (data.success && data.invoice_url) {
+        window.open(data.invoice_url, "_blank");
 
-  // ✅ If API sent a JSON error with "message"
-  if (err?.response?.data?.message) {
-    setCheckoutError(err.response.data.message);
-  } else if (err?.message) {
-    setCheckoutError(err.message);
-  } else {
-    setCheckoutError("Checkout failed. Please try again.");
-  }
-}
-
+        setTimeout(() => {
+          window.location.href = "/account?section=orders";
+        }, 1000);
+      } else {
+        setCheckoutError(data?.message || "Failed to process checkout.");
+      }
+    } catch (err: any) {
+      if (err?.response?.data?.message) {
+        setCheckoutError(err.response.data.message);
+      } else if (err?.message) {
+        setCheckoutError(err.message);
+      } else {
+        setCheckoutError("Checkout failed. Please try again.");
+      }
+    } finally {
+      setLoading(false); // ✅ stop loading
+    }
   };
 
   if (!credit) return <p>Loading...</p>;
@@ -197,11 +203,7 @@ export default function CheckoutCreditsPage() {
                 {renderInput("Barangay", shipping.barangay, "barangay")}
                 {renderInput("City", shipping.city, "city")}
                 {renderInput("Province", shipping.province, "province")}
-                {renderInput(
-                  "Postal Code",
-                  shipping.postal_code,
-                  "postal_code"
-                )}
+                {renderInput("Postal Code", shipping.postal_code, "postal_code")}
                 <div className="col-span-2">
                   {renderInput(
                     "Country",
@@ -251,7 +253,6 @@ export default function CheckoutCreditsPage() {
                 <span>₱{total}</span>
               </div>
 
-              {/* ✅ Error Alert under Buy Now */}
               {checkoutError && (
                 <Alert variant="destructive" className="mt-4">
                   <XCircle className="h-4 w-4" />
@@ -259,9 +260,44 @@ export default function CheckoutCreditsPage() {
                 </Alert>
               )}
 
-              <Button className="w-full mt-4" onClick={handleBuyNow}>
-                Buy Now
+              {/* ✅ Updated Button */}
+              <Button
+                className="w-full mt-4"
+                onClick={handleBuyNow}
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  "Buy Now"
+                )}
               </Button>
+
+              <div className="mt-3 bg-gray-100 text-gray-700 text-xs p-3 rounded-md flex items-start space-x-2">
+                <Clock className="w-4 h-4 mt-0.5 text-gray-600" />
+                <p>
+                  <strong>Reminder:</strong> Payment gateways remain active for
+                  only <span className="font-semibold">3 hours</span>. Similarly,
+                  NFC card reservations are also held for{" "}
+                  <span className="font-semibold">3 hours</span>.
+                </p>
+              </div>
+
+              <div className="mt-3 bg-gray-100 text-gray-700 text-xs p-3 rounded-md flex items-start space-x-2">
+                <Info className="w-4 h-4 mt-0.5 text-gray-600" />
+                <p>
+                  <strong>What does reserving an NFC card mean?</strong> During
+                  checkout, your order will temporarily{" "}
+                  <span className="font-semibold">reserve NFC cards</span>. If
+                  payment is not completed within{" "}
+                  <span className="font-semibold">3 hours</span>, both the
+                  reservation and the payment gateway will expire, and you will
+                  need to place a new order.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

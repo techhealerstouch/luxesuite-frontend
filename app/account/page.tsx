@@ -1,19 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { ProtectedRoute } from "@/components/protected-route";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { apiService } from "@/lib/api-service";
 import {
-  apiService,
-} from "@/lib/api-service";
-import { 
-  Subscription, 
-  SubscriptionsApiResponse, 
-  SubscriptionPlan, 
-  CustomPlanUserLimit, 
-  NewSubscription 
+  Subscription,
+  SubscriptionsApiResponse,
+  SubscriptionPlan,
+  CustomPlanUserLimit,
+  NewSubscription,
 } from "@/types/api/subscription";
 import { AccountSettings } from "@/types/settings/account-settings";
 import { useToast } from "@/hooks/use-toast";
@@ -24,113 +22,71 @@ import OrdersSection from "@/components/Account/OrdersSection";
 import { SubscriptionSection } from "@/components/Account/SubscriptionSection";
 import { SettingsSection } from "@/components/Account/SettingsSection";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useSearchParams } from "next/navigation";
 
 const currencies = ["PHP", "USD", "EUR"];
 type ActiveSection = "account" | "subscription" | "orders" | "settings";
 
-export default function AccountPage() {
-  const [activeSection, setActiveSection] = useState<ActiveSection>("account");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [currentPlans, setCurrentPlans] = useState<Subscription[]>([]);
-  const [accountSettings, setAccountSettings] =
-    useState<AccountSettings | null>(null);
-  const [userDataLoaded, setUserDataLoaded] = useState(false);
-  const { currency, setCurrency } = useCurrency();
-  
-  const { user } = useAuth();
-  const { toast } = useToast();
+/* --------------------------
+   Extract child that uses useSearchParams
+--------------------------- */
+function AccountContent({
+  activeSection,
+  setActiveSection,
+  isLoading,
+  isSaving,
+  setIsSaving,
+  setIsLoading,
+  currentPlans,
+  setCurrentPlans,
+  accountSettings,
+  setAccountSettings,
+  userDataLoaded,
+  setUserDataLoaded,
+  formData,
+  setFormData,
+  passwordData,
+  setPasswordData,
+  user,
+  toast,
+}: any) {
+  const searchParams = useSearchParams();
+  const section = searchParams.get("section") as ActiveSection | null;
 
-  const [formData, setFormData] = useState({
-    id: null,
-    name: "",
-    email: "",
-    phone_number: "",
-    timezone: "",
-    account: {
-      name: "", // maps to businessName maybe
-      slug: "",
-    },
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  // Initialize form data from user data
+  // Apply section from query params
   useEffect(() => {
-    if (user) {
-      // Only update if we haven't loaded user data yet, or if timezone is empty
-      // This prevents overwriting user changes with stale data
-      if (!userDataLoaded) {
-        setFormData({
-          id: user.account?.id || null,
-          name: user.name || "",
-          email: user.email || "",
-          phone_number: user.phone_number || "",
-          timezone: user.timezone || "", // This will be populated by AccountSection if empty
-          account: {
-            name: user.account?.name || "",
-            slug: user.account?.slug || "",
-          },
-        });
-        setUserDataLoaded(true);
-      } else if (user.timezone && !formData.timezone) {
-        // If user has a timezone but formData doesn't, update it
-        setFormData(prev => ({
-          ...prev,
-          timezone: user.timezone || "",
-        }));
-      }
+    if (section) {
+      setActiveSection(section);
     }
-  }, [user, userDataLoaded, formData.timezone]);
+  }, [section, setActiveSection]);
 
-  useEffect(() => {
-    if (activeSection === "subscription") fetchCurrentPlan();
-    else if (activeSection === "settings") fetchAccountSettings();
-  }, [activeSection]);
-
+  /* --------------------------
+     Fetching + handlers remain the same
+  --------------------------- */
   async function fetchCurrentPlan() {
     setIsLoading(true);
     try {
       const response = await apiService.getSubscriptions();
       setCurrentPlans(response.data);
     } catch (error) {
-      // console.error('Failed to fetch subscriptions:', error);
-      // toast({
-      //   title: "Error",
-      //   description: "Failed to load subscription information",
-      //   variant: "destructive",
-      // });
+      // handle error silently or with toast
     } finally {
       setIsLoading(false);
     }
   }
 
   async function fetchAccountSettings() {
-    // Uncomment and implement if needed
-    // setIsLoading(true);
-    // try {
-    //   const settings = await apiService.getSettings();
-    //   setAccountSettings(settings);
-    // } catch (error) {
-    //   console.error(error);
-    //   toast({
-    //     title: "Error",
-    //     description: "Failed to load settings",
-    //     variant: "destructive",
-    //   });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    // Uncomment if you have settings endpoint
   }
+
+  useEffect(() => {
+    if (activeSection === "subscription") fetchCurrentPlan();
+    else if (activeSection === "settings") fetchAccountSettings();
+  }, [activeSection]);
 
   async function handleAccountUpdate(e: React.FormEvent) {
     e.preventDefault();
-    
-    // Basic validation
+
     if (!formData.name.trim() || !formData.email.trim()) {
       toast({
         title: "Validation Error",
@@ -148,18 +104,12 @@ export default function AccountPage() {
         description: "Account information updated successfully",
       });
     } catch (error) {
-      console.error('Failed to update account:', error);
-      
-      // Extract error message if available
       let errorMessage = "Failed to update account information";
       if (typeof error === "object" && error !== null) {
-        if ("data" in error && typeof (error as any).data === "object" && (error as any).data !== null) {
-          errorMessage = (error as any).data.message ?? errorMessage;
-        } else if ("message" in error && typeof (error as any).message === "string") {
+        if ("message" in error && typeof (error as any).message === "string") {
           errorMessage = (error as any).message;
         }
       }
-
       toast({
         title: "Error",
         description: errorMessage,
@@ -172,8 +122,7 @@ export default function AccountPage() {
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
-    
-    // Validation
+
     if (!passwordData.currentPassword || !passwordData.newPassword) {
       toast({
         title: "Validation Error",
@@ -207,9 +156,9 @@ export default function AccountPage() {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      toast({ 
-        title: "Success", 
-        description: "Password updated successfully" 
+      toast({
+        title: "Success",
+        description: "Password updated successfully",
       });
       setPasswordData({
         currentPassword: "",
@@ -218,22 +167,11 @@ export default function AccountPage() {
       });
     } catch (error: unknown) {
       let message = "Failed to update password";
-
       if (typeof error === "object" && error !== null) {
-        if (
-          "data" in error &&
-          typeof (error as any).data === "object" &&
-          (error as any).data !== null
-        ) {
-          message = (error as any).data.message ?? message;
-        } else if (
-          "message" in error &&
-          typeof (error as any).message === "string"
-        ) {
+        if ("message" in error && typeof (error as any).message === "string") {
           message = (error as any).message;
         }
       }
-
       toast({
         title: "Error",
         description: message,
@@ -253,25 +191,14 @@ export default function AccountPage() {
         ...newSettings,
       });
       setAccountSettings(updatedSettings);
-      toast({ 
-        title: "Success", 
-        description: "Settings updated successfully" 
+      toast({
+        title: "Success",
+        description: "Settings updated successfully",
       });
     } catch (error) {
-      console.error('Failed to update settings:', error);
-      
-      let errorMessage = "Failed to update settings";
-      if (typeof error === "object" && error !== null) {
-        if ("data" in error && typeof (error as any).data === "object" && (error as any).data !== null) {
-          errorMessage = (error as any).data.message ?? errorMessage;
-        } else if ("message" in error && typeof (error as any).message === "string") {
-          errorMessage = (error as any).message;
-        }
-      }
-
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to update settings",
         variant: "destructive",
       });
     } finally {
@@ -280,63 +207,144 @@ export default function AccountPage() {
   }
 
   return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Account</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-2/5 space-y-4 px-4 md:px-0">
+          <Sidebar
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            user={user}
+          />
+        </div>
+
+        <div className="w-full md:w-3/5 px-4 md:px-0">
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2 text-muted-foreground">Loading...</span>
+            </div>
+          )}
+
+          {!isLoading && activeSection === "account" && (
+            <AccountSection
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleAccountUpdate}
+              isSaving={isSaving}
+            />
+          )}
+          {!isLoading && activeSection === "subscription" && (
+            <SubscriptionSection
+              subscriptions={currentPlans}
+              isLoading={isLoading}
+            />
+          )}
+          {!isLoading && activeSection === "orders" && <OrdersSection />}
+          {!isLoading && activeSection === "settings" && (
+            <SettingsSection
+              passwordData={passwordData}
+              setPasswordData={setPasswordData}
+              onPasswordSubmit={handlePasswordChange}
+              isSaving={isSaving}
+              accountSettings={accountSettings}
+              onSettingsUpdate={handleSettingsUpdate}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------
+   Main Page with Suspense wrapper
+--------------------------- */
+export default function AccountPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentPlans, setCurrentPlans] = useState<Subscription[]>([]);
+  const [accountSettings, setAccountSettings] =
+    useState<AccountSettings | null>(null);
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
+  const [activeSection, setActiveSection] = useState<ActiveSection>("account");
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    id: null,
+    name: "",
+    email: "",
+    phone_number: "",
+    timezone: "",
+    account: {
+      name: "",
+      slug: "",
+    },
+  });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // Initialize user form data
+  useEffect(() => {
+    if (user && !userDataLoaded) {
+      setFormData({
+        id: user.account?.id || null,
+        name: user.name || "",
+        email: user.email || "",
+        phone_number: user.phone_number || "",
+        timezone: user.timezone || "",
+        account: {
+          name: user.account?.name || "",
+          slug: user.account?.slug || "",
+        },
+      });
+      setUserDataLoaded(true);
+    }
+  }, [user, userDataLoaded]);
+
+  return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Account</h1>
-            <p className="text-muted-foreground">
-              Manage your account settings and preferences.
-            </p>
-          </div>
-
-          {/* Responsive flex container */}
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="w-full md:w-2/5 space-y-4 px-4 md:px-0">
-              <Sidebar
-                activeSection={activeSection}
-                setActiveSection={setActiveSection}
-                user={user}
-              />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2 text-muted-foreground">Loading...</span>
             </div>
-
-            <div className="w-full md:w-3/5 px-4 md:px-0">
-              {isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2 text-muted-foreground">Loading...</span>
-                </div>
-              )}
-              {!isLoading && activeSection === "account" && (
-                <AccountSection
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleAccountUpdate}
-                  isSaving={isSaving}
-                />
-              )}
-              {!isLoading && activeSection === "subscription" && (
-                <SubscriptionSection
-                  subscriptions={currentPlans}
-                  isLoading={isLoading}
-                />
-              )}
-              {!isLoading && activeSection === "orders" && (
-                <OrdersSection />
-              )}
-              {!isLoading && activeSection === "settings" && (
-                <SettingsSection
-                  passwordData={passwordData}
-                  setPasswordData={setPasswordData}
-                  onPasswordSubmit={handlePasswordChange}
-                  isSaving={isSaving}
-                  accountSettings={accountSettings}
-                  onSettingsUpdate={handleSettingsUpdate}
-                />
-              )}
-            </div>
-          </div>
-        </div>
+          }
+        >
+          <AccountContent
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            isLoading={isLoading}
+            isSaving={isSaving}
+            setIsSaving={setIsSaving}
+            setIsLoading={setIsLoading}
+            currentPlans={currentPlans}
+            setCurrentPlans={setCurrentPlans}
+            accountSettings={accountSettings}
+            setAccountSettings={setAccountSettings}
+            userDataLoaded={userDataLoaded}
+            setUserDataLoaded={setUserDataLoaded}
+            formData={formData}
+            setFormData={setFormData}
+            passwordData={passwordData}
+            setPasswordData={setPasswordData}
+            user={user}
+            toast={toast}
+          />
+        </Suspense>
       </DashboardLayout>
     </ProtectedRoute>
   );
