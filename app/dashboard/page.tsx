@@ -29,7 +29,7 @@ export default function DashboardPage() {
   const router = useRouter(); // ✅ initialize router
 
   const serviceIcons: Record<string, string> = {
-  luxeflips: "/Luxe Vip-11.svg",
+  luxeflip: "/Luxe Vip-11.svg",
   luxeoffice: "/Luxe Vip-09.svg",
   luxeproof: "/Luxe Vip-07.svg",
 };

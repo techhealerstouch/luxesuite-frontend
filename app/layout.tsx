@@ -21,12 +21,15 @@ export const nunitoSans = Nunito_Sans({
 export const metadata: Metadata = {
   title: "Luxe Suite",
   description: "Premium business management platform",
+  icons: {
+    icon: "/Luxe Vip-08.svg", // favicon
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={nunitoSans.className} >
+      <body className={nunitoSans.className}>
         <Providers>{children}</Providers>
       </body>
     </html>
