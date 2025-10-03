@@ -125,29 +125,32 @@ export default function CheckoutCreditsPage() {
   const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE ?? 150);
   const total = Number(credit.price) + shippingFee;
 
-  const renderInput = (
-    label: string,
-    value: string,
-    field: string,
-    type = "text",
-    placeholder = ""
-  ) => (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium mb-1">{label}</label>
-      <input
-        type={type}
-        className={`border rounded-md px-3 py-2 ${
-          errors[field] ? "border-red-500" : ""
-        }`}
-        value={value}
-        onChange={(e) => setShipping({ ...shipping, [field]: e.target.value })}
-        placeholder={placeholder}
-      />
-      {errors[field] && (
-        <span className="text-red-500 text-xs mt-1">{errors[field]}</span>
-      )}
-    </div>
-  );
+const renderInput = (
+  label: string,
+  value: string,
+  field: string,
+  type = "text",
+  placeholder = ""
+) => (
+  <div className="flex flex-col">
+    <label className="text-sm font-bold mb-1">
+      {label} <span className="text-red-500">*</span>
+    </label>
+    <input
+      type={type}
+      className={`border rounded-md px-3 py-2 ${
+        errors[field] ? "border-red-500" : ""
+      }`}
+      value={value}
+      onChange={(e) => setShipping({ ...shipping, [field]: e.target.value })}
+      placeholder={placeholder}
+    />
+    {errors[field] && (
+      <span className="text-red-500 text-xs mt-1">{errors[field]}</span>
+    )}
+  </div>
+);
+
 
   return (
     <ProtectedRoute>

@@ -28,6 +28,12 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const router = useRouter(); // ✅ initialize router
 
+  const serviceIcons: Record<string, string> = {
+  luxeflips: "/Luxe Vip-11.svg",
+  luxeoffice: "/Luxe Vip-09.svg",
+  luxeproof: "/Luxe Vip-07.svg",
+};
+
   const fetchSubscriptions = async () => {
     setIsLoading(true);
     setIsRefreshing(true);
@@ -133,11 +139,11 @@ export default function DashboardPage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4 w-full">
-                        <img
-                          src={"/placeholder-logo.png"}
-                          alt={`${subscription.service} logo`}
-                          className="w-16 h-16 object-contain rounded"
-                        />
+<img
+  src={serviceIcons[subscription.service] || "/placeholder-logo.png"}
+  alt={`${subscription.service} logo`}
+  className="w-16 h-16 object-contain rounded"
+/>
                         <div className="space-y-2">
                           <div>
                             <p className="text-xs text-muted-foreground">
